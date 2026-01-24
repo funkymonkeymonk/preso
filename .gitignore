@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+
+# Devenv
+.devenv/
+.devenv.flake.nix
+
+# Build output
+dist/
+
+# Slidev
+components.d.ts
+
+# PDF exports
+*.pdf
+
+# Devenv
+.devenv*
+devenv.local.nix
+devenv.local.yaml
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
+
+# Presentation selection
+.current-preso
+
+# Git worktrees
+.worktrees/
+
+# Local/private content (themes, presentations)
+local/
+
+# Process logs
+*.log
+
+# AI session logs
+session-*.md
