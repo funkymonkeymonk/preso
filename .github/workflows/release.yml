@@ -1,0 +1,109 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v0.1.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - target: darwin-arm64
+            os: macos-14
+            artifact: preso-darwin-arm64
+          - target: darwin-x64
+            os: macos-13
+            artifact: preso-darwin-x64
+          - target: linux-x64
+            os: ubuntu-latest
+            artifact: preso-linux-x64
+          - target: linux-arm64
+            os: ubuntu-24.04-arm
+            artifact: preso-linux-arm64
+          - target: windows-x64
+            os: windows-latest
+            artifact: preso-windows-x64.exe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build binary
+        run: |
+          VERSION="${{ github.event.inputs.version || github.ref_name }}"
+          VERSION="${VERSION#v}"
+          bun build --compile --minify --target=bun-${{ matrix.target }} \
+            --define=BUILD_VERSION="\"$VERSION\"" \
+            ./src/cli/index.ts --outfile dist/${{ matrix.artifact }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.artifact }}
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create checksums
+        run: |
+          cd dist
+          sha256sum * > checksums.txt
+          cat checksums.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.version || github.ref_name }}
+          name: PRESO ${{ github.event.inputs.version || github.ref_name }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          generate_release_notes: true
+          files: |
+            dist/preso-darwin-arm64
+            dist/preso-darwin-x64
+            dist/preso-linux-x64
+            dist/preso-linux-arm64
+            dist/preso-windows-x64.exe
+            dist/checksums.txt
+
+  homebrew:
+    name: Update Homebrew Tap
+    needs: release
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.ref_name, '-') }}
+    steps:
+      - name: Trigger Homebrew tap update
+        run: |
+          echo "Homebrew tap update would be triggered here"
+          # This would typically dispatch to a homebrew-tap repo
+          # gh workflow run update-formula.yml --repo $ORG/homebrew-tap

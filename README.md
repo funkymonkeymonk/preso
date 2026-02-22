@@ -2,52 +2,99 @@
 
 **PRESO Renders Engaging Slides On-demand**
 
-AI-powered markdown presentations using [Slidev](https://sli.dev), with integrated agent development environment.
+A standalone CLI for creating and presenting [Slidev](https://sli.dev) presentations.
+
+## Installation
+
+Download the latest release for your platform:
+
+```bash
+# macOS (Apple Silicon)
+curl -L https://github.com/wweaver/preso/releases/latest/download/preso-darwin-arm64 -o preso
+chmod +x preso && sudo mv preso /usr/local/bin/
+
+# macOS (Intel)
+curl -L https://github.com/wweaver/preso/releases/latest/download/preso-darwin-x64 -o preso
+chmod +x preso && sudo mv preso /usr/local/bin/
+
+# Linux
+curl -L https://github.com/wweaver/preso/releases/latest/download/preso-linux-x64 -o preso
+chmod +x preso && sudo mv preso /usr/local/bin/
+```
 
 ## Quick Start
 
 ```bash
-devenv shell              # Enter the environment
-slides-new my-talk        # Create a presentation
-devenv up                 # Start the dev server
+# Create a new presentation
+mkdir my-talk && cd my-talk
+preso init
+
+# Start the dev server
+preso serve
+
 # Open http://localhost:3030
 ```
 
-> **New to PRESO?** Follow the [Getting Started Tutorial](docs/tutorials/getting-started.md) for a complete walkthrough.
+## Commands
 
-## Documentation
+| Command | Description |
+|---------|-------------|
+| `preso init` | Create slides.md and dependencies in current directory |
+| `preso serve` | Start development server |
+| `preso build` | Build static site for deployment |
+| `preso pdf` | Export to PDF |
+| `preso present` | Start presenter mode with speaker notes |
+| `preso theme` | Manage themes (list, set, add) |
+| `preso config` | Manage global configuration |
 
-### Tutorials (Learning)
+Each command has detailed help: `preso <command> -h`
 
-- [Getting Started](docs/tutorials/getting-started.md) - Create your first presentation
+## Multiple Presentations
 
-### How-To Guides (Tasks)
+Each presentation lives in its own directory. Run multiple presentations on different ports:
 
-- [Switch Presentations](docs/how-to/switch-presentations.md)
-- [Apply Themes](docs/how-to/apply-themes.md)
-- [Build and Export](docs/how-to/build-and-export.md)
-- [Troubleshoot Server](docs/how-to/troubleshoot-server.md)
-- [Start Agent Session](docs/how-to/start-agent-session.md)
-- [Create Custom Theme](docs/how-to/create-custom-theme.md)
+```bash
+# Terminal 1
+cd ~/talks/talk-a
+preso serve -p 3030
 
-### Reference (Facts)
+# Terminal 2
+cd ~/talks/talk-b
+preso serve -p 3031
+```
 
-- [CLI Commands](docs/reference/cli-commands.md)
-- [Slidev Syntax](docs/reference/slidev-syntax.md)
-- [Theme Structure](docs/reference/theme-structure.md)
-- [Process-Compose API](docs/reference/process-compose-api.md)
-- [Project Structure](docs/reference/project-structure.md)
+## Configuration
 
-### Explanation (Understanding)
+Global settings are stored in `~/.config/preso/config.json`:
 
-- [Presentation Selection System](docs/explanation/presentation-selection.md)
-- [Process-Compose Integration](docs/explanation/process-compose-integration.md)
-- [Agent Session Architecture](docs/explanation/agent-sessions.md)
+```bash
+preso config show                    # View configuration
+preso config set defaultTheme seriph # Set default theme
+preso config set defaultPort 4000    # Set default port
+```
 
-## Requirements
+## For AI/LLM Agents
 
-- [devenv](https://devenv.sh) - Manages all other dependencies automatically
+The `llm` command provides token-efficient help and status:
 
-## For AI Agents
+```bash
+preso llm              # Compact help
+preso llm status       # JSON status of current directory
+preso llm debug        # Troubleshooting information
+preso llm schema       # Structured command schema
+```
 
-See [AGENTS.md](AGENTS.md) for agent-specific instructions and quick reference.
+## Development
+
+For contributors using [devenv](https://devenv.sh):
+
+```bash
+devenv shell
+preso-dev serve        # Run CLI in dev mode
+preso-build            # Build binary for current platform
+preso-build-all        # Build for all platforms
+```
+
+## License
+
+MIT

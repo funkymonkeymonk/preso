@@ -1,156 +1,121 @@
 # AGENTS.md
 
-> **PRESO** - *PRESO Renders Engaging Slides On-demand*
+> **PRESO** - Slidev presentation CLI
 
-Quick reference for AI agents working in this repository.
+Quick reference for AI agents. For detailed help: `preso llm`
 
-## Key Files
+## Key Concept
 
-| File | Purpose |
-|------|---------|
-| `devenv.nix` | All scripts, processes, and environment config |
-| `presentations/*/slides.md` | Presentation content |
-| `.current-preso` | Currently selected presentation name |
+**One directory = one presentation.** The current working directory is the presentation.
 
 ## Essential Commands
 
 ```bash
-# Validate before working
-slides-validate
+# Create presentation
+mkdir my-talk && cd my-talk
+preso init
 
-# List/select presentations
-slides-list
-slides-select <name>    # Always pass name argument
+# Develop
+preso serve              # Start dev server on :3030
+preso serve -p 3031      # Use different port
 
-# Start server (daemon mode for agents)
-devenv up -d
+# Export
+preso build              # Static site -> ./dist
+preso pdf                # PDF export
 
-# Build/export
-slides-build
-slides-pdf
+# Present
+preso present            # Speaker notes view
 ```
 
-## Critical Rules
-
-1. **Always validate first:** Run `slides-validate` before expecting the server to work
-2. **Pass arguments:** Use `slides-select my-talk` not `slides-select` (avoids fzf prompt)
-3. **Use daemon mode:** Run `devenv up -d` not `devenv up` (TUI blocks agents)
-4. **Use Unix socket:** Process-compose API is on a socket, not HTTP port
-
-## Process-Compose Socket
+## LLM-Optimized Discovery
 
 ```bash
-# Find the socket
-SOCKET=$(find /var/folders -name "pc.sock" -path "*/devenv-*/pc.sock" 2>/dev/null | head -1)
-
-# Common operations
-curl -s --unix-socket "$SOCKET" http://localhost/processes | jq .
-curl -s --unix-socket "$SOCKET" -X POST http://localhost/process/restart/slides
-curl -s --unix-socket "$SOCKET" "http://localhost/process/logs/slides/0/50" | jq -r '.logs[]'
+preso llm                # Compact help (minimal tokens)
+preso llm status         # JSON: cwd, slides exist, port status
+preso llm debug          # Troubleshooting info
+preso llm schema         # Structured command schema for tool use
 ```
 
 ## Quick Fixes
 
-| Symptom | Fix |
-|---------|-----|
-| Port 3030 not responding | `slides-validate` then `slides-select example` |
-| Wrong presentation | `slides-select <correct-name>` |
-| Multiple slidev processes | `pkill -f "slidev presentations"` |
-| Socket not found | `devenv up -d` |
-
-## Available Skills
-
-| Skill | When to Load |
-|-------|--------------|
-| `slidev-authoring` | Creating/editing slides |
-| `presentation-workflow` | Managing presentations |
-| `server-management` | Server issues |
-| `devenv` | devenv.nix or process issues |
-
-## OpenCode Commands
-
-| Command | Purpose |
-|---------|---------|
-| `/slides` | Presentation management |
-| `/processes` | Process-compose control |
+| Problem | Solution |
+|---------|----------|
+| "No slides.md" | `preso init` |
+| "Port in use" | `preso serve -p <other>` |
+| PDF fails | `bunx playwright install chromium` |
 
 ## File Locations
 
-| Content Type | Location |
-|--------------|----------|
-| Presentations | `presentations/<name>/slides.md` |
-| Private themes | `local/themes/<name>/` (gitignored) |
-| Shared themes | `shared/themes/<name>/` |
-| Design docs | `docs/plans/` |
+| Item | Location |
+|------|----------|
+| Presentation | `./slides.md` (current directory) |
+| Global config | `~/.config/preso/config.json` |
+| Custom themes | `~/.config/preso/themes/` |
+| Logs | `./.preso.log` |
 
-## Slidev Syntax Quick Reference
-
-### Slide Structure
+## Slidev Syntax
 
 ```markdown
 ---
 theme: seriph
-layout: cover
 ---
 
-# Title
+# Slide Title
 
-Content
+Content here
 
 ---
 
 # Next Slide
 ```
 
-### Common Layouts
-
+### Layouts
 `cover`, `default`, `center`, `two-cols`, `image-right`, `section`, `quote`
 
-### Two Columns
-
-```markdown
----
-layout: two-cols
----
-
-# Left
-
-::right::
-
-# Right
-```
-
-### Code Highlighting
-
+### Code
 ````markdown
-```ts {2,3}           # Highlight lines 2-3
+```ts {2,3}           # Highlight lines
 ```ts {1|2-3|all}     # Click to reveal
 ````
 
-### Presenter Notes
-
+### Notes
 ```markdown
 # Slide
 
 Content
 
 <!--
-Notes here
+Speaker notes here
 -->
 ```
 
-## Theme Paths
+## CLI Architecture
 
-Relative to `slides.md`:
-
-```yaml
-theme: ../../local/themes/my-theme
+```
+src/cli/
+├── index.ts           # Entry, command routing
+├── version.ts         # Build-time version
+├── commands/
+│   ├── init.ts        # preso init
+│   ├── serve.ts       # preso serve
+│   ├── build.ts       # preso build
+│   ├── pdf.ts         # preso pdf
+│   ├── present.ts     # preso present
+│   ├── theme.ts       # preso theme
+│   ├── config.ts      # preso config
+│   └── llm.ts         # preso llm
+└── utils/
+    ├── config.ts      # Global + local config
+    ├── output.ts      # Console helpers
+    ├── templates.ts   # Embedded templates
+    └── themes.ts      # Theme registry
 ```
 
-## Documentation
+## Building
 
-Full documentation in `docs/`:
-- `docs/tutorials/` - Learning guides
-- `docs/how-to/` - Task guides  
-- `docs/reference/` - Technical reference
-- `docs/explanation/` - Conceptual explanations
+```bash
+devenv shell
+preso-dev serve          # Run in dev mode
+preso-build              # Build current platform
+preso-build-all          # Build all platforms
+```

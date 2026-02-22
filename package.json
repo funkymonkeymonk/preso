@@ -1,10 +1,20 @@
 {
-  "name": "presos",
+  "name": "preso",
+  "version": "0.1.0",
+  "description": "PRESO Renders Engaging Slides On-demand",
   "private": true,
+  "type": "module",
+  "bin": {
+    "preso": "./dist/bin/preso"
+  },
   "scripts": {
-    "dev": "slidev",
-    "build": "slidev build",
-    "export": "slidev export"
+    "dev": "bun run src/cli/index.ts",
+    "build": "bun run scripts/build.ts",
+    "build:all": "bun run scripts/build.ts --all",
+    "typecheck": "tsc --noEmit",
+    "slidev": "slidev",
+    "slidev:build": "slidev build",
+    "slidev:export": "slidev export"
   },
   "dependencies": {
     "@slidev/cli": "^51.0.0",
@@ -12,6 +22,8 @@
     "@slidev/theme-seriph": "latest"
   },
   "devDependencies": {
-    "playwright-chromium": "^1.40.0"
+    "bun-types": "latest",
+    "playwright-chromium": "^1.40.0",
+    "typescript": "^5.0.0"
   }
 }
