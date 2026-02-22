@@ -14,14 +14,19 @@ Guide for starting and stopping the Slidev presentation server.
 ### Via Process-Compose (Recommended)
 
 ```bash
-# Start process manager with slides server
+# Start process manager in foreground with TUI (for humans)
 devenv up
+
+# Start process manager in background/daemon mode (for agents)
+devenv up -d
 ```
 
 This starts process-compose with the `slides` process, which:
 1. Reads `.current-preso` to determine which presentation to serve
 2. Runs Slidev on port 3030
-3. Provides TUI for monitoring
+3. Provides TUI for monitoring (foreground mode only)
+
+**For agents:** Always use `devenv up -d` (daemon mode) to avoid blocking on the TUI.
 
 ### Standalone (Without Process Manager)
 
@@ -38,6 +43,13 @@ slides-dev
 
 Press `q` in the process-compose TUI to quit all processes.
 
+### Via devenv CLI
+
+```bash
+# Stop background processes
+devenv processes down
+```
+
 ### Via Unix Socket API
 
 ```bash
@@ -46,9 +58,6 @@ SOCKET=$(find /var/folders -name "pc.sock" -path "*/devenv-*/pc.sock" 2>/dev/nul
 
 # Stop slides process
 curl -s --unix-socket "$SOCKET" -X POST http://localhost/process/stop/slides
-
-# Stop all processes
-curl -s --unix-socket "$SOCKET" -X POST http://localhost/shutdown
 ```
 
 ### Kill Orphan Processes
@@ -128,7 +137,6 @@ curl -s --unix-socket "$SOCKET" "http://localhost/process/logs/slides/0/100" | j
 | `/process/start/{name}` | POST | Start a stopped process |
 | `/process/stop/{name}` | POST | Stop a running process |
 | `/process/restart/{name}` | POST | Restart a process |
-| `/shutdown` | POST | Stop all processes and exit |
 
 ## Troubleshooting
 

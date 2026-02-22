@@ -289,7 +289,8 @@ EOF
       ${getPresoScript}
       preso=$(get_preso)
       echo "Building: $preso"
-      npx slidev build "presentations/$preso/slides.md" --out "presentations/$preso/dist" --base "/$preso/"
+      # --out is relative to the entry file, so use just 'dist' to place it in presentations/$preso/dist
+      npx slidev build "presentations/$preso/slides.md" --out "dist" --base "/$preso/"
     '';
     description = "Build static site for selected presentation";
   };

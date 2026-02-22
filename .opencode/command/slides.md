@@ -53,15 +53,32 @@ Parse the first argument as the action, remaining as args.
 
 ### Server Management Actions
 
-These actions control the Slidev dev server via devenv process management commands.
+These actions control the Slidev dev server via devenv process management.
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| `start` | `devenv up -d` | Start process-compose in daemon mode |
-| `stop` | `devenv processes stop` | Stop all processes |
-| `restart` | `devenv processes stop && devenv up -d` | Restart process-compose |
-| `status` | `devenv processes status` | Show process status |
-| `logs [lines]` | `tail -n ${lines:-50} .devenv/processes.log` | Show recent logs |
+| `start` | `devenv up -d` | Start process-compose in background (daemon mode) |
+| `stop` | `devenv processes down` | Stop all background processes |
+| `restart` | Restart via socket API | Restart the slides process |
+| `status` | Query socket API | Show process status |
+| `logs [lines]` | Query socket API | Show recent logs |
+
+**Important:** Process-compose uses a Unix socket, not an HTTP port. Find it with:
+```bash
+SOCKET=$(find /var/folders -name "pc.sock" -path "*/devenv-*/pc.sock" 2>/dev/null | head -1)
+```
+
+For `restart`, `status`, and `logs`, use the Unix socket API:
+```bash
+# Restart
+curl -s --unix-socket "$SOCKET" -X POST http://localhost/process/restart/slides
+
+# Status  
+curl -s --unix-socket "$SOCKET" http://localhost/processes | jq '.[] | select(.name=="slides")'
+
+# Logs (last N lines)
+curl -s --unix-socket "$SOCKET" "http://localhost/process/logs/slides/0/${lines:-50}" | jq -r '.logs[]'
+```
 
 After start/stop/restart, report the result to the user.
 
@@ -96,8 +113,8 @@ If the action doesn't match any known action, show an error and list available a
 - `/slides logs 100` → Shows last 100 lines of logs
 
 **Important behaviors:**
-- Always run commands via `devenv shell -- <command>` or directly if in devenv shell
+- Always run scripts via the devenv shell (they're available after `devenv shell` or when using the commands directly in an active shell)
 - After `/slides select`, the slides process auto-restarts if running
 - Use `/slides validate` before expecting the dev server to work
-- Private themes are in `shared/themes/` and applied with relative paths
-- Server logs are written to `.devenv/processes.log`
+- Private themes are in `local/themes/` (gitignored) or `shared/themes/` (committed)
+- Process-compose uses a Unix socket for API communication, not HTTP

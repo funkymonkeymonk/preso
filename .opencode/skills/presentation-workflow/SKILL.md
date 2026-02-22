@@ -53,6 +53,30 @@ This:
 2. Sets it as current (updates `.current-preso`)
 3. Restarts slides process if running
 
+## Applying Themes
+
+```bash
+# List available themes
+slides-theme list
+
+# Apply a theme interactively (fzf picker)
+slides-theme
+
+# Apply a specific theme
+slides-theme dracula
+```
+
+**Theme sources:**
+- **Official**: `default`, `seriph`, `dracula`, etc. (auto-installed)
+- **Private**: `local/themes/<name>/` (gitignored)
+- **Shared**: `shared/themes/<name>/` (committed)
+
+**For agents:** Always pass the theme name argument to avoid interactive prompts:
+```bash
+slides-theme dracula    # Good - non-interactive
+slides-theme            # Bad - opens fzf picker
+```
+
 ## Building & Exporting
 
 ```bash
