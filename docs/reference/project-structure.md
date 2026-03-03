@@ -23,9 +23,6 @@ preso/
 │   ├── reference/          # Technical reference
 │   ├── explanation/        # Conceptual explanations
 │   └── plans/              # Design documents
-├── .opencode/              # OpenCode configuration
-│   ├── command/            # Slash commands
-│   └── skills/             # Agent skills
 ├── devenv.nix              # Scripts, processes, environment
 ├── .current-preso          # Currently selected presentation
 ├── AGENTS.md               # Agent instructions
@@ -72,24 +69,6 @@ Theme structure:
 │   └── layouts.css
 └── setup/
     └── unocss.ts
-```
-
-## OpenCode Files
-
-```
-.opencode/
-├── command/                # Slash commands
-│   ├── slides.md          # /slides command
-│   └── processes.md       # /processes command
-└── skills/                 # Agent skills
-    ├── slidev-authoring/
-    │   └── SKILL.md
-    ├── presentation-workflow/
-    │   └── SKILL.md
-    ├── server-management/
-    │   └── SKILL.md
-    └── devenv/
-        └── SKILL.md
 ```
 
 ## Documentation Structure

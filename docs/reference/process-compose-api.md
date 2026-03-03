@@ -1,6 +1,8 @@
 # Process-Compose API Reference
 
-Reference for the process-compose Unix socket API used to control background processes.
+Reference for the process-compose Unix socket API used to control background processes when running `devenv up`.
+
+> **Note:** For most use cases, prefer `slides-serve` and `slides-stop` over direct API calls. The API is mainly useful when running in interactive mode with `devenv up`.
 
 ## Socket Location
 
@@ -14,6 +16,14 @@ Or check the devenv state directory:
 ```bash
 ls .devenv/state/*/pc.sock 2>/dev/null
 ```
+
+## When to Use the API
+
+| Scenario | Recommended Approach |
+|----------|---------------------|
+| Agent automation | `slides-serve` / `slides-stop` |
+| Human development | `devenv up` with TUI |
+| Advanced control (devenv up running) | Socket API |
 
 ## API Endpoints
 
@@ -91,14 +101,6 @@ In PRESO, the main process is:
 curl -s --unix-socket "$SOCKET" http://localhost/processes | jq '.[] | select(.name=="slides") | .status'
 ```
 
-### Restart slides after changing presentation
-
-```bash
-slides-select new-presentation
-# Auto-restarts, or manually:
-curl -s --unix-socket "$SOCKET" -X POST http://localhost/process/restart/slides
-```
-
 ### View recent errors
 
 ```bash
@@ -108,5 +110,20 @@ curl -s --unix-socket "$SOCKET" "http://localhost/process/logs/slides/0/100" | j
 ## Notes
 
 - The socket only exists when process-compose is running (`devenv up`)
-- Use `devenv up -d` for daemon mode (background, no TUI)
+- For background operation, prefer `slides-serve` over `devenv up -d`
 - The HTTP port in `devenv.nix` is for process-compose internal use; always use the socket for API calls
+
+## Alternative: slides-serve
+
+For simpler background operation without the socket API:
+
+```bash
+# Start server (background, waits until ready)
+slides-serve
+
+# Stop server
+slides-stop
+
+# View logs
+cat .devenv/slides.log
+```

@@ -24,11 +24,26 @@ lsof -i :3030
 
 If another process is using port 3030, stop it or restart PRESO.
 
-### Step 3: Check process-compose logs
+### Step 3: Check server logs
+
+If using `slides-serve` (background mode):
 
 ```bash
-SOCKET=$(find /var/folders -name "pc.sock" -path "*/devenv-*/pc.sock" 2>/dev/null | head -1)
-curl -s --unix-socket "$SOCKET" "http://localhost/process/logs/slides/0/50" | jq -r '.logs[]'
+cat .devenv/slides.log
+```
+
+If using `devenv up` (foreground mode), logs appear in the TUI.
+
+### Step 4: Restart the server
+
+```bash
+# For background mode
+slides-stop
+slides-serve
+
+# For foreground mode
+# Press Ctrl+C in the TUI, then run:
+devenv up
 ```
 
 ## Multiple Slidev Processes Running
@@ -42,22 +57,24 @@ pgrep -fl slidev
 Kill all slidev processes and restart:
 
 ```bash
+slides-stop
+# or
 pkill -f "slidev presentations"
-devenv up
+
+# Then restart
+slides-serve
 ```
 
-## Process-Compose Socket Not Found
+## Server Not Starting
 
-The socket only exists when process-compose is running:
+Check the logs for errors:
 
 ```bash
-# Start process-compose
-devenv up
-```
+# Background mode logs
+cat .devenv/slides.log
 
-For background mode (agents):
-```bash
-devenv up -d
+# Or check if slidev can start manually
+slides-dev
 ```
 
 ## Wrong Presentation Showing
@@ -69,24 +86,38 @@ slides-current
 slides-select <correct-name>
 ```
 
-The server automatically restarts after selection changes.
+If using `slides-serve`, restart the server:
+
+```bash
+slides-stop
+slides-serve
+```
 
 ## Server Running But No Hot Reload
 
-Try manually restarting the slides process:
+Try restarting the server:
 
 ```bash
-SOCKET=$(find /var/folders -name "pc.sock" -path "*/devenv-*/pc.sock" 2>/dev/null | head -1)
-curl -s --unix-socket "$SOCKET" -X POST http://localhost/process/restart/slides
+slides-stop
+slides-serve
 ```
+
+Or if using `devenv up`, press `r` in the TUI to restart the process.
 
 ## Quick Diagnosis Table
 
 | Symptom | Check | Fix |
 |---------|-------|-----|
-| Nothing on port 3030 | `slides-validate` | `slides-select <valid-name>` |
+| Nothing on port 3030 | `slides-validate` | `slides-select <valid-name>` then `slides-serve` |
 | Wrong presentation | `slides-current` | `slides-select <correct-name>` |
-| Multiple processes | `pgrep -fl slidev` | `pkill -f "slidev presentations"` |
-| Socket not found | Is `devenv up` running? | Run `devenv up` |
+| Multiple processes | `pgrep -fl slidev` | `slides-stop` |
+| Server won't start | `cat .devenv/slides.log` | Check logs for errors |
 
-> For details on how process-compose works, see [Process-Compose Integration](../explanation/process-compose-integration.md).
+## Background vs Foreground Mode
+
+| Mode | Command | Best For | Logs |
+|------|---------|----------|------|
+| Background | `slides-serve` | Agents, automation | `.devenv/slides.log` |
+| Foreground | `devenv up` | Humans, debugging | TUI display |
+
+> For details on how the server architecture works, see [Process-Compose Integration](../explanation/process-compose-integration.md).

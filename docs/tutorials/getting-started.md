@@ -36,6 +36,8 @@ devenv up
 
 You'll see the process-compose TUI showing the `slides` process running.
 
+> **Tip:** For background operation (useful for scripts or AI agents), use `slides-serve` instead. See [CLI Commands Reference](../reference/cli-commands.md).
+
 ## Step 4: View Your Presentation
 
 Open your browser to [http://localhost:3030](http://localhost:3030). You should see your presentation's title slide.

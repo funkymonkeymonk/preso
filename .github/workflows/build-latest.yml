@@ -1,0 +1,113 @@
+name: Build Latest
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'bun.lock'
+      - 'tsconfig.json'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - target: darwin-arm64
+            os: macos-14
+            artifact: preso-darwin-arm64
+          - target: darwin-x64
+            os: macos-13
+            artifact: preso-darwin-x64
+          - target: linux-x64
+            os: ubuntu-latest
+            artifact: preso-linux-x64
+          - target: linux-arm64
+            os: ubuntu-24.04-arm
+            artifact: preso-linux-arm64
+          - target: windows-x64
+            os: windows-latest
+            artifact: preso-windows-x64.exe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build binary
+        run: |
+          SHORT_SHA="${{ github.sha }}"
+          SHORT_SHA="${SHORT_SHA:0:7}"
+          VERSION="0.0.0-dev+${SHORT_SHA}"
+          bun build --compile --minify --target=bun-${{ matrix.target }} \
+            --define=BUILD_VERSION="\"$VERSION\"" \
+            ./src/cli/index.ts --outfile dist/${{ matrix.artifact }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.artifact }}
+
+  release:
+    name: Update Latest Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create checksums
+        run: |
+          cd dist
+          sha256sum * > checksums.txt
+          cat checksums.txt
+
+      - name: Delete existing latest release
+        run: gh release delete latest --yes || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete existing latest tag
+        run: git push origin :refs/tags/latest || true
+
+      - name: Create Latest Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest Build (unstable)
+          body: |
+            **This is an automated build from the main branch.**
+            
+            Built from commit: ${{ github.sha }}
+            
+            For stable releases, see the [versioned releases](../../releases).
+            
+            ⚠️ This build may contain untested changes.
+          draft: false
+          prerelease: true
+          files: |
+            dist/preso-darwin-arm64
+            dist/preso-darwin-x64
+            dist/preso-linux-x64
+            dist/preso-linux-arm64
+            dist/preso-windows-x64.exe
+            dist/checksums.txt
