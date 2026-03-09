@@ -4,14 +4,11 @@ This guide shows you how to create a custom Slidev theme for your presentations.
 
 ## Create the Theme Directory
 
-For private themes (gitignored):
-```bash
-mkdir -p local/themes/my-theme
-```
+Custom themes are stored in `~/.config/preso/themes/`:
 
-For shared themes (committed):
 ```bash
-mkdir -p shared/themes/my-theme
+mkdir -p ~/.config/preso/themes/my-theme
+cd ~/.config/preso/themes/my-theme
 ```
 
 ## Required Files
@@ -87,11 +84,19 @@ export default defineUnoSetup(() => ({
 
 ## Use Your Theme
 
-In your presentation's frontmatter:
+In your presentation's frontmatter, reference the theme by name:
 
 ```yaml
 ---
-theme: ../../local/themes/my-theme
+theme: my-theme
+---
+```
+
+Or use a relative path if the theme is in a custom location:
+
+```yaml
+---
+theme: ~/.config/preso/themes/my-theme
 ---
 ```
 
@@ -107,7 +112,7 @@ theme: ../../local/themes/my-theme
 ## Important Notes
 
 - Background is controlled by UnoCSS's `bg-main` shortcut, NOT CSS on `.slidev-layout`
-- Theme paths are relative to `slides.md`
 - Restart the dev server after theme changes
+- Themes in `~/.config/preso/themes/` are available to all presentations
 
 > For complete theme structure reference, see [Theme Structure Reference](../reference/theme-structure.md).

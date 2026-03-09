@@ -5,8 +5,8 @@
 import { existsSync } from "fs";
 import { join, basename } from "path";
 import { parseArgs } from "util";
-import { success, error, info, warn } from "../utils/output";
-import { findSlidesFile, getGlobalConfig, isPortAvailable, getLogFile } from "../utils/config";
+import { error, info } from "../utils/output";
+import { requireSlidesFile, getGlobalConfig, isPortAvailable, parsePort, validatePort } from "../utils/config";
 
 const HELP = `
 Start the Slidev development server.
@@ -51,24 +51,12 @@ export async function serveCommand(args: string[]): Promise<void> {
   }
 
   const cwd = process.cwd();
-  const slidesPath = findSlidesFile(cwd);
-
-  if (!slidesPath) {
-    error("No slides.md found in current directory");
-    console.log("");
-    info("To create a presentation:");
-    console.log("  preso init");
-    process.exit(1);
-  }
+  const slidesPath = requireSlidesFile(cwd);
 
   // Determine port
   const globalConfig = await getGlobalConfig();
-  const port = values.port ? parseInt(values.port, 10) : globalConfig.defaultPort;
-
-  if (isNaN(port) || port < 1 || port > 65535) {
-    error(`Invalid port: ${values.port}`);
-    process.exit(1);
-  }
+  const port = parsePort(values.port, globalConfig.defaultPort);
+  validatePort(port, values.port);
 
   // Check port availability - FAIL if in use (no auto-increment)
   const portAvailable = await isPortAvailable(port);

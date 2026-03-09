@@ -2,11 +2,10 @@
  * present command - Start presenter mode
  */
 
-import { existsSync } from "fs";
-import { join, basename } from "path";
+import { basename } from "path";
 import { parseArgs } from "util";
-import { success, error, info } from "../utils/output";
-import { findSlidesFile, getGlobalConfig, isPortAvailable } from "../utils/config";
+import { error, info } from "../utils/output";
+import { requireSlidesFile, getGlobalConfig, isPortAvailable, parsePort, validatePort } from "../utils/config";
 
 const HELP = `
 Start presenter mode with speaker notes and controls.
@@ -45,23 +44,11 @@ export async function presentCommand(args: string[]): Promise<void> {
   }
 
   const cwd = process.cwd();
-  const slidesPath = findSlidesFile(cwd);
-
-  if (!slidesPath) {
-    error("No slides.md found in current directory");
-    console.log("");
-    info("To create a presentation:");
-    console.log("  preso init");
-    process.exit(1);
-  }
+  const slidesPath = requireSlidesFile(cwd);
 
   const globalConfig = await getGlobalConfig();
-  const port = values.port ? parseInt(values.port, 10) : globalConfig.defaultPort;
-
-  if (isNaN(port) || port < 1 || port > 65535) {
-    error(`Invalid port: ${values.port}`);
-    process.exit(1);
-  }
+  const port = parsePort(values.port, globalConfig.defaultPort);
+  validatePort(port, values.port);
 
   const portAvailable = await isPortAvailable(port);
   if (!portAvailable) {

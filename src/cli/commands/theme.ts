@@ -6,8 +6,8 @@ import { existsSync, readFileSync, writeFileSync } from "fs";
 import { join, basename } from "path";
 import { parseArgs } from "util";
 import { success, error, info, header, colors, Spinner } from "../utils/output";
-import { findSlidesFile, getGlobalConfig, saveGlobalConfig, getConfigPaths } from "../utils/config";
-import { OFFICIAL_THEMES, type ThemeInfo } from "../utils/themes";
+import { requireSlidesFile, getGlobalConfig, saveGlobalConfig, getConfigPaths } from "../utils/config";
+import { OFFICIAL_THEMES } from "../utils/themes";
 
 const HELP = `
 Manage presentation themes.
@@ -110,12 +110,7 @@ async function setTheme(args: string[]): Promise<void> {
   }
 
   const cwd = process.cwd();
-  const slidesPath = findSlidesFile(cwd);
-
-  if (!slidesPath) {
-    error("No slides.md found in current directory");
-    process.exit(1);
-  }
+  const slidesPath = requireSlidesFile(cwd);
 
   // Update slides.md frontmatter
   let content = readFileSync(slidesPath, "utf-8");

@@ -39,13 +39,13 @@ Common options: `default`, `seriph`, `dracula`, `apple-basic`, `bricks`
 
 ## Using Custom Themes
 
-### Add a Custom Theme
+### Add a Theme to Favorites
 
 ```bash
-preso theme add /path/to/my-theme
+preso theme add <theme-name>
 ```
 
-This copies the theme to `~/.config/preso/themes/`.
+This adds the theme to your favorites list in the global config. Favorites are shown with a `*` marker in `preso theme list`.
 
 ### Apply a Custom Theme
 

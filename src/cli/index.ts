@@ -5,7 +5,6 @@
  * PRESO Renders Engaging Slides On-demand
  */
 
-import { parseArgs } from "util";
 import { version } from "./version";
 import { initCommand } from "./commands/init";
 import { serveCommand } from "./commands/serve";

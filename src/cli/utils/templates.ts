@@ -105,20 +105,6 @@ title: {{title}}
 };
 
 /**
- * Get a template by name
- */
-export function getTemplate(name: string): Template | undefined {
-  return templates[name];
-}
-
-/**
- * List available templates
- */
-export function listTemplates(): Template[] {
-  return Object.values(templates);
-}
-
-/**
  * Apply template variables
  */
 export function applyTemplateVariables(template: Template, vars: Record<string, string>): string {

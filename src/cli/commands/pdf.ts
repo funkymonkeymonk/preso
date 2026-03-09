@@ -6,7 +6,7 @@ import { existsSync } from "fs";
 import { join, basename } from "path";
 import { parseArgs } from "util";
 import { success, error, info, Spinner } from "../utils/output";
-import { findSlidesFile } from "../utils/config";
+import { requireSlidesFile } from "../utils/config";
 
 const HELP = `
 Export the presentation to PDF.
@@ -50,15 +50,7 @@ export async function pdfCommand(args: string[]): Promise<void> {
   }
 
   const cwd = process.cwd();
-  const slidesPath = findSlidesFile(cwd);
-
-  if (!slidesPath) {
-    error("No slides.md found in current directory");
-    console.log("");
-    info("To create a presentation:");
-    console.log("  preso init");
-    process.exit(1);
-  }
+  const slidesPath = requireSlidesFile(cwd);
 
   const name = basename(cwd);
   const outputPath = values.out || `${name}.pdf`;

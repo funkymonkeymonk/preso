@@ -63,4 +63,4 @@ Inside an agent session:
 - **Detach (keep running):** `Ctrl+b, d` (zellij default)
 - **Exit completely:** `Ctrl+q` in zellij, or close all panes
 
-> For architecture details, see [Agent Session Architecture](../explanation/agent-sessions.md).
+> For architecture details, see [Agent Session Architecture](./agent-sessions.md).

@@ -2,7 +2,7 @@
  * init command - Initialize a new presentation in current directory
  */
 
-import { existsSync, mkdirSync } from "fs";
+import { existsSync } from "fs";
 import { join, basename } from "path";
 import { parseArgs } from "util";
 import { success, error, info, header, Spinner } from "../utils/output";

@@ -16,12 +16,13 @@ Reference for custom Slidev theme structure.
     └── unocss.ts         # UnoCSS overrides
 ```
 
-## Theme Locations
+## Theme Location
 
-| Location | Purpose | Git Status |
-|----------|---------|------------|
-| `local/themes/<name>/` | Private/proprietary themes | Gitignored |
-| `shared/themes/<name>/` | Shared repository themes | Committed |
+Custom themes are stored in:
+
+```
+~/.config/preso/themes/<name>/
+```
 
 ## package.json
 
@@ -119,21 +120,13 @@ export default defineUnoSetup(() => ({
 
 The slide background is controlled by the `bg-main` UnoCSS shortcut, NOT CSS on `.slidev-layout`. Always override `bg-main` in `setup/unocss.ts` to change background colors.
 
-## Theme Path Resolution
-
-Paths in `slides.md` are relative to the file location:
-
-```
-presentations/my-talk/slides.md
-theme: ../../local/themes/my-theme
-       ^^ goes up 2 directories to project root
-```
-
 ## Using a Theme
+
+Reference your custom theme by name in `slides.md`:
 
 ```yaml
 ---
-theme: ../../local/themes/my-theme
+theme: my-theme
 layout: cover
 ---
 

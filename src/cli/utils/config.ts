@@ -19,20 +19,11 @@ export interface GlobalConfig {
   defaultTemplate: string;
   defaultPort: number;
   themes: string[];           // Favorite/installed themes
-  templates: Record<string, CustomTemplate>;
   editor?: string;            // Preferred editor command
-}
-
-export interface CustomTemplate {
-  name: string;
-  description: string;
-  theme: string;
-  content: string;
 }
 
 const CONFIG_DIR = join(homedir(), ".config", "preso");
 const CONFIG_FILE = join(CONFIG_DIR, "config.json");
-const TEMPLATES_DIR = join(CONFIG_DIR, "templates");
 const THEMES_DIR = join(CONFIG_DIR, "themes");
 
 const DEFAULT_GLOBAL_CONFIG: GlobalConfig = {
@@ -40,7 +31,6 @@ const DEFAULT_GLOBAL_CONFIG: GlobalConfig = {
   defaultTemplate: "basic",
   defaultPort: 3030,
   themes: ["default", "seriph", "apple-basic", "dracula"],
-  templates: {},
 };
 
 /**
@@ -49,9 +39,6 @@ const DEFAULT_GLOBAL_CONFIG: GlobalConfig = {
 export function ensureConfigDir(): void {
   if (!existsSync(CONFIG_DIR)) {
     mkdirSync(CONFIG_DIR, { recursive: true });
-  }
-  if (!existsSync(TEMPLATES_DIR)) {
-    mkdirSync(TEMPLATES_DIR, { recursive: true });
   }
   if (!existsSync(THEMES_DIR)) {
     mkdirSync(THEMES_DIR, { recursive: true });
@@ -101,7 +88,6 @@ export function getConfigPaths() {
   return {
     configDir: CONFIG_DIR,
     configFile: CONFIG_FILE,
-    templatesDir: TEMPLATES_DIR,
     themesDir: THEMES_DIR,
   };
 }
@@ -130,17 +116,20 @@ export function findSlidesFile(startDir: string = process.cwd()): string | null 
 }
 
 /**
- * Check if current directory is a presentation
+ * Find slides.md or exit with helpful error message
  */
-export function isPresentation(dir: string = process.cwd()): boolean {
-  return findSlidesFile(dir) !== null;
-}
-
-/**
- * Get presentation name from directory
- */
-export function getPresentationName(dir: string = process.cwd()): string {
-  return basename(dir);
+export function requireSlidesFile(cwd: string = process.cwd()): string {
+  const slidesPath = findSlidesFile(cwd);
+  if (!slidesPath) {
+    // Use dynamic import to avoid circular dependency
+    const { error, info } = require("./output");
+    error("No slides.md found in current directory");
+    console.log("");
+    info("To create a presentation:");
+    console.log("  preso init");
+    process.exit(1);
+  }
+  return slidesPath;
 }
 
 /**
@@ -160,21 +149,26 @@ export async function isPortAvailable(port: number): Promise<boolean> {
 }
 
 /**
- * Find next available port starting from given port
- */
-export async function findAvailablePort(startPort: number, maxAttempts: number = 10): Promise<number | null> {
-  for (let i = 0; i < maxAttempts; i++) {
-    const port = startPort + i;
-    if (await isPortAvailable(port)) {
-      return port;
-    }
-  }
-  return null;
-}
-
-/**
  * Get log file path for current presentation
  */
 export function getLogFile(dir: string = process.cwd()): string {
   return join(dir, ".preso.log");
+}
+
+/**
+ * Parse port from string, returning default if not provided
+ */
+export function parsePort(portStr: string | undefined, defaultPort: number): number {
+  return portStr ? parseInt(portStr, 10) : defaultPort;
+}
+
+/**
+ * Validate port number, exit with error if invalid
+ */
+export function validatePort(port: number, portStr: string | undefined): void {
+  if (isNaN(port) || port < 1 || port > 65535) {
+    const { error } = require("./output");
+    error(`Invalid port: ${portStr}`);
+    process.exit(1);
+  }
 }

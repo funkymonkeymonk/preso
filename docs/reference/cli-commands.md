@@ -11,7 +11,7 @@ These commands are available to all users with the `preso` binary installed.
 | Command | Description |
 |---------|-------------|
 | `preso init` | Create slides.md in current directory |
-| `preso init -T <theme>` | Create with specific theme |
+| `preso init --theme <theme>` | Create with specific theme |
 | `preso init -n "Title"` | Create with custom title |
 | `preso serve` | Start development server on port 3030 |
 | `preso serve -p <port>` | Start on a specific port |
@@ -26,7 +26,7 @@ These commands are available to all users with the `preso` binary installed.
 |---------|-------------|
 | `preso theme list` | List available themes |
 | `preso theme set <name>` | Apply a theme to current presentation |
-| `preso theme add <path>` | Add a custom theme |
+| `preso theme add <name>` | Add theme to favorites |
 
 ### Configuration
 

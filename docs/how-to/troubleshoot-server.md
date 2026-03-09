@@ -10,7 +10,7 @@ This guide helps you diagnose and fix common issues with the preso development s
 preso llm status
 ```
 
-If this shows `"hasSlides": false`, you need to either:
+If this shows `"isPresentation": false`, you need to either:
 - Run `preso init` to create a presentation, or
 - `cd` to an existing presentation directory
 

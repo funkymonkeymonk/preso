@@ -22,10 +22,6 @@ export function error(message: string): void {
   console.error(`${colors.red}Error: ${message}${colors.reset}`);
 }
 
-export function warn(message: string): void {
-  console.warn(`${colors.yellow}Warning: ${message}${colors.reset}`);
-}
-
 export function info(message: string): void {
   console.log(`${colors.blue}${message}${colors.reset}`);
 }

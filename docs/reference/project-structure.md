@@ -97,7 +97,6 @@ preso/                      # CLI source repository
 │       └── slides.md
 ├── docs/                   # Documentation
 ├── devenv.nix              # Development environment
-├── .current-preso          # Current test presentation
 ├── AGENTS.md               # Agent instructions
 └── README.md               # Project overview
 ```

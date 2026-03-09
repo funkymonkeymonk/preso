@@ -4,7 +4,7 @@ In this tutorial, you'll create your first presentation and see it running in yo
 
 ## Prerequisites
 
-You need the `preso` binary installed. See [Installation](../setup/ai-agent-install.md) for download links, or use:
+You need the `preso` binary installed. See [Installation](../how-to/ai-agent-install.md) for download links, or use:
 
 ```bash
 # macOS (Apple Silicon)
@@ -123,4 +123,3 @@ You've:
 - **Add more slides:** Learn Slidev syntax in the [Slidev Syntax Reference](../reference/slidev-syntax.md)
 - **Apply a theme:** See [How to Apply Themes](../how-to/apply-themes.md)
 - **Build for deployment:** See [How to Build and Export](../how-to/build-and-export.md)
-- **Work with multiple presentations:** See [How to Switch Presentations](../how-to/switch-presentations.md)
