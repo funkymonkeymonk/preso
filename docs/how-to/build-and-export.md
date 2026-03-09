@@ -15,6 +15,13 @@ The output is saved to `./dist/`.
 
 You can deploy this folder to any static hosting service (Netlify, Vercel, GitHub Pages, etc.).
 
+### Custom Output Directory
+
+```bash
+preso build -o public          # Build to ./public
+preso build --base /slides/    # Set base path for subdirectory hosting
+```
+
 ## Export to PDF
 
 Create a PDF version for sharing:
@@ -31,23 +38,19 @@ To use a custom filename:
 preso pdf -o my-slides.pdf
 ```
 
-**Note:** PDF export requires Playwright. If not installed, the command will prompt you to install it:
+### PDF Options
+
+```bash
+preso pdf --dark           # Use dark theme
+preso pdf --with-clicks    # Separate pages for click animations
+preso pdf --with-toc       # Include table of contents
+```
+
+**Note:** PDF export requires Playwright. If not installed:
 
 ```bash
 bunx playwright install chromium
 ```
-
-## Start Presenter Mode
-
-For presenting with speaker notes and controls:
-
-```bash
-preso present
-```
-
-This opens:
-- **Main window:** Full-screen presentation for the audience
-- **Presenter window:** Speaker view with notes, timer, and slide preview
 
 ## Build vs PDF Comparison
 
@@ -56,40 +59,15 @@ This opens:
 | Static build | Web deployment, online sharing | Full (animations, Monaco editor, etc.) |
 | PDF | Offline sharing, printing, email | None (static images) |
 
-## Troubleshooting
-
-### Build fails with "No slides.md found"
-
-Make sure you're in the presentation directory:
-
-```bash
-preso llm status   # Check if slides.md exists
-preso build
-```
-
-### PDF is missing slides
-
-Ensure all slides render correctly in the browser first. PDF export captures what's visible.
-
-### Animations not in PDF
-
-PDF export captures the final state of each slide. Click-through animations become separate pages.
-
-### PDF export fails
-
-Install Playwright's Chromium:
-
-```bash
-bunx playwright install chromium
-```
-
 ## Quick Reference
 
 | Task | Command |
 |------|---------|
 | Build static site | `preso build` |
+| Build to custom dir | `preso build -o public` |
 | Export to PDF | `preso pdf` |
 | Custom PDF name | `preso pdf -o name.pdf` |
-| Presenter mode | `preso present` |
+| PDF with click pages | `preso pdf --with-clicks` |
 
-> For reference on all available commands, see [CLI Reference](../reference/cli-commands.md).
+> For troubleshooting export issues, see [Troubleshooting](troubleshoot-server.md).
+> For all CLI options, see [CLI Reference](../reference/cli-commands.md).

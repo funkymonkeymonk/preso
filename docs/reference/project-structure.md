@@ -9,9 +9,11 @@ Each presentation is a standalone directory:
 ```
 my-presentation/
 ├── slides.md           # Presentation content (required)
+├── package.json        # Dependencies (created by preso init)
+├── .gitignore          # Git ignore rules (created by preso init)
+├── node_modules/       # Installed packages (after bun install)
 ├── dist/               # Built static site (after preso build)
-├── my-presentation.pdf # Exported PDF (after preso pdf)
-└── .preso.log          # Server logs
+└── my-presentation.pdf # Exported PDF (after preso pdf)
 ```
 
 ## Global Configuration
@@ -33,7 +35,8 @@ User-level configuration and themes:
 
 ```json
 {
-  "defaultTheme": "seriph",
+  "defaultTheme": "default",
+  "defaultTemplate": "basic",
   "defaultPort": 3030
 }
 ```
@@ -65,39 +68,7 @@ Content here
 More content
 ```
 
-## Theme Structure
+## Related
 
-Custom themes follow Slidev's theme format:
-
-```
-my-theme/
-├── package.json
-├── styles/
-│   ├── index.ts
-│   ├── base.css
-│   └── layouts.css
-└── setup/
-    └── unocss.ts
-```
-
----
-
-## Development Repository Structure
-
-> **Note:** This section is only relevant for contributors developing the preso CLI itself.
-
-```
-preso/                      # CLI source repository
-├── src/cli/                # CLI source code
-│   ├── index.ts            # Entry point
-│   ├── commands/           # Command implementations
-│   └── utils/              # Shared utilities
-├── presentations/          # Test presentations
-│   └── example/
-│       └── slides.md
-├── docs/                   # Documentation
-├── devenv.nix              # Development environment
-├── .current-preso          # Current test presentation
-├── AGENTS.md               # Agent instructions
-└── README.md               # Project overview
-```
+- [Theme Structure Reference](theme-structure.md) - Custom theme file organization
+- [Contributing Guide](../contributing/getting-started.md) - Repository structure for contributors

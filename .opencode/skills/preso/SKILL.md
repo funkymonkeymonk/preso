@@ -54,45 +54,7 @@ preso llm status
 This returns JSON showing:
 - Whether current directory has a presentation
 - If port 3030 is available
-- Path to logs and config
-
-## Common Patterns
-
-### Create New Presentation
-```bash
-# Check we're in right place
-pwd
-ls  # Should be empty or no slides.md
-
-# Create
-preso init
-preso init -T seriph        # With specific theme
-preso init -n "My Talk"     # With custom title
-```
-
-### Start Development
-```bash
-preso llm status            # Verify slides.md exists
-preso serve                 # Start server
-# If port conflict:
-preso serve -p 3031
-```
-
-### Multiple Presentations
-```bash
-# Terminal 1
-cd ~/talks/talk-a && preso serve -p 3030
-
-# Terminal 2  
-cd ~/talks/talk-b && preso serve -p 3031
-```
-
-### Export for Sharing
-```bash
-preso build                 # Creates ./dist with static site
-preso pdf                   # Creates <dirname>.pdf
-preso pdf -o slides.pdf     # Custom filename
-```
+- Path to config directory
 
 ## Error Recovery
 
@@ -102,33 +64,18 @@ preso pdf -o slides.pdf     # Custom filename
 | "Port X in use" | Use `preso serve -p <other-port>` |
 | PDF export fails | Run `bunx playwright install chromium` |
 
-## Discovery Commands
-
-When unsure, use progressive discovery:
-
-```bash
-preso llm                   # Minimal token help
-preso llm status            # Current state as JSON
-preso llm debug             # Detailed troubleshooting
-preso llm schema            # Full command schema
-preso <command> -h          # Detailed help for specific command
-```
-
 ## File Locations
 
 | Item | Path |
 |------|------|
 | Presentation content | `./slides.md` |
 | Global config | `~/.config/preso/config.json` |
-| Custom themes | `~/.config/preso/themes/` |
-| Logs | `./.preso.log` |
 
-## Slidev Markdown Syntax
+## Slidev Markdown Basics
 
-Basic structure:
 ```markdown
 ---
-theme: seriph
+theme: default
 ---
 
 # Slide Title
@@ -153,18 +100,12 @@ Speaker notes go here
 -->
 ```
 
-Code highlighting:
-````markdown
-```ts {2,3}
-// Line 1
-// Line 2 - highlighted
-// Line 3 - highlighted
-```
-````
-
 ## Do NOT
 
 - Don't look for a "project root" or multi-presentation setup
 - Don't try to "select" a presentation - just `cd` to it
 - Don't auto-increment ports on conflict - fail and tell user
-- Don't create presentations in nested structures
+
+## Full Documentation
+
+For complete reference, see the [preso documentation](docs/index.md).

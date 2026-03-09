@@ -1,22 +1,19 @@
 ---
-description: Manage presentations (list, select, new, build, pdf, present, validate, serve, stop)
+description: Manage test presentations in devenv (list, select, serve, stop, validate)
 ---
 
-Presentation management command. Run devenv scripts for slide operations.
+Presentation management for CLI development. These scripts help test the preso CLI by managing presentations in the `presentations/` directory.
+
+> **Note:** These are devenv scripts for CLI development only. Regular users should use the `preso` command directly.
 
 **Usage:** `/slides <action> [args]`
 
-**Actions:**
+**Available Actions:**
 - `list` - Show all presentations (marks current with *)
 - `select <name>` - Select a presentation to work on
-- `current` - Show currently selected presentation
 - `validate` - Verify current selection is valid
-- `new <name>` - Create a new presentation
-- `serve` - Start dev server in background (recommended for agents)
+- `serve` - Start dev server in background
 - `stop` - Stop background dev server
-- `build` - Build static site for current presentation
-- `pdf` - Export current presentation to PDF
-- `present` - Start presenter mode with remote control
 
 **Arguments provided:** $ARGUMENTS
 
@@ -26,28 +23,25 @@ Presentation management command. Run devenv scripts for slide operations.
 2. Run the corresponding devenv script:
    - `list` → `slides-list`
    - `select <name>` → `slides-select <name>`
-   - `current` → `slides-current`
    - `validate` → `slides-validate`
-   - `new <name>` → `slides-new <name>`
    - `serve` → `slides-serve`
    - `stop` → `slides-stop`
-   - `build` → `slides-build`
-   - `pdf` → `slides-pdf`
-   - `present` → `slides-present`
 
 3. If no action provided, show available actions
 
 **Examples:**
 - `/slides list` - List all presentations
-- `/slides select my-talk` - Select "my-talk" presentation
-- `/slides new kubernetes-intro` - Create new presentation
+- `/slides select example` - Select "example" presentation
 - `/slides serve` - Start dev server in background
 - `/slides stop` - Stop background server
-- `/slides build` - Build current presentation
+
+**For creating/building presentations, use preso commands:**
+- `preso init` - Create new presentation (in current directory)
+- `preso build` - Build static site
+- `preso pdf` - Export to PDF
+- `preso present` - Start presenter mode
 
 **Important for agents:**
-- Always run `/slides validate` before expecting the dev server to work
-- Use `/slides select <name>` with the name argument to avoid interactive prompts
-- After `/slides select`, the slides process auto-restarts if running
-- Use `/slides serve` for background server (not `devenv up -d`)
+- Always run `slides-validate` before expecting the dev server to work
+- Use `slides-select <name>` with the name argument to avoid interactive prompts
 - Logs are written to `.devenv/slides.log` when using `slides-serve`

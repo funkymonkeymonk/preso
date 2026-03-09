@@ -82,30 +82,28 @@ export default defineUnoSetup(() => ({
 }))
 ```
 
-## Add Your Theme to Preso
-
-Register your theme so you can use it by name:
-
-```bash
-preso theme add ~/my-themes/my-theme
-```
-
-This copies the theme to `~/.config/preso/themes/my-theme/`.
-
 ## Use Your Theme
 
-In your presentation's frontmatter:
+Reference your theme by path in your presentation's frontmatter:
 
 ```yaml
 ---
-theme: my-theme
+theme: ~/my-themes/my-theme
 ---
 ```
 
-Or apply to an existing presentation:
+Or use a relative path from your presentation directory:
+
+```yaml
+---
+theme: ../themes/my-theme
+---
+```
+
+You can also apply it using the CLI:
 
 ```bash
-preso theme set my-theme
+preso theme set ~/my-themes/my-theme
 ```
 
 ## Key Customization Points

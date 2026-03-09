@@ -99,7 +99,7 @@ title: {{title}}
 
 ---
 
-# 
+# Slide 2
 `,
   },
 };
@@ -126,4 +126,30 @@ export function slugToTitle(slug: string): string {
     .split(/[-_]/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" ");
+}
+
+/**
+ * Set or update the theme in frontmatter content
+ * Only modifies theme within the frontmatter block (between --- markers)
+ */
+export function setFrontmatterTheme(content: string, theme: string): string {
+  // Match frontmatter block at start of file
+  const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+
+  if (frontmatterMatch) {
+    const frontmatter = frontmatterMatch[1];
+    if (frontmatter.match(/^theme:/m)) {
+      // Replace existing theme in frontmatter
+      const newFrontmatter = frontmatter.replace(
+        /^theme:.*$/m,
+        `theme: ${theme}`,
+      );
+      return content.replace(frontmatterMatch[1], newFrontmatter);
+    }
+    // Add theme to existing frontmatter
+    return content.replace(/^---\n/, `---\ntheme: ${theme}\n`);
+  }
+
+  // No frontmatter - add it
+  return `---\ntheme: ${theme}\n---\n\n${content}`;
 }

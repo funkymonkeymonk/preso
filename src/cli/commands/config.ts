@@ -5,6 +5,7 @@
 import { parseArgs } from "node:util";
 
 import {
+  type GlobalConfig,
   getConfigPaths,
   getGlobalConfig,
   saveGlobalConfig,
@@ -76,8 +77,6 @@ async function showConfig(): Promise<void> {
   console.log(`  defaultTemplate: ${config.defaultTemplate}`);
   console.log(`  defaultPort:     ${config.defaultPort}`);
   console.log("");
-  console.log(`  themes:          ${config.themes.join(", ")}`);
-  console.log("");
 
   const paths = getConfigPaths();
   console.log(`${colors.dim}Config file: ${paths.configFile}${colors.reset}`);
@@ -94,8 +93,11 @@ async function setConfig(args: string[]): Promise<void> {
     });
   }
 
-  const validKeys = ["defaultTheme", "defaultTemplate", "defaultPort"];
-  if (!validKeys.includes(key)) {
+  const validKeys: (keyof Pick<
+    GlobalConfig,
+    "defaultTheme" | "defaultTemplate" | "defaultPort"
+  >)[] = ["defaultTheme", "defaultTemplate", "defaultPort"];
+  if (!validKeys.includes(key as (typeof validKeys)[number])) {
     exitWithError(`Unknown config key: ${key}`, {
       code: ExitCode.INVALID_ARGUMENT,
       hint: `Valid keys: ${validKeys.join(", ")}`,

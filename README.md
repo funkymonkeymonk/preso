@@ -4,42 +4,29 @@
 
 A standalone CLI for creating and presenting [Slidev](https://sli.dev) presentations.
 
-## AI Agent Quick Install
-
-One-line install for AI coding assistants (installs binary + OpenCode skill):
-
-```bash
-# macOS (Apple Silicon)
-curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-darwin-arm64 -o /usr/local/bin/preso && chmod +x /usr/local/bin/preso && mkdir -p ~/.config/opencode/skills/preso && curl -fsSL https://raw.githubusercontent.com/wweaver/preso/main/.opencode/skills/preso/SKILL.md -o ~/.config/opencode/skills/preso/SKILL.md
-
-# macOS (Intel)
-curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-darwin-x64 -o /usr/local/bin/preso && chmod +x /usr/local/bin/preso && mkdir -p ~/.config/opencode/skills/preso && curl -fsSL https://raw.githubusercontent.com/wweaver/preso/main/.opencode/skills/preso/SKILL.md -o ~/.config/opencode/skills/preso/SKILL.md
-
-# Linux (x64)
-curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-linux-x64 -o /usr/local/bin/preso && chmod +x /usr/local/bin/preso && mkdir -p ~/.config/opencode/skills/preso && curl -fsSL https://raw.githubusercontent.com/wweaver/preso/main/.opencode/skills/preso/SKILL.md -o ~/.config/opencode/skills/preso/SKILL.md
-
-# Linux (ARM64)
-curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-linux-arm64 -o /usr/local/bin/preso && chmod +x /usr/local/bin/preso && mkdir -p ~/.config/opencode/skills/preso && curl -fsSL https://raw.githubusercontent.com/wweaver/preso/main/.opencode/skills/preso/SKILL.md -o ~/.config/opencode/skills/preso/SKILL.md
-```
-
-After installation, run `preso llm` for token-efficient command reference, or `preso llm schema` for structured tool use.
-
 ## Installation
 
 Download the latest release for your platform:
 
 ```bash
 # macOS (Apple Silicon)
-curl -L https://github.com/wweaver/preso/releases/latest/download/preso-darwin-arm64 -o preso
+curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-darwin-arm64 -o preso
 chmod +x preso && sudo mv preso /usr/local/bin/
 
 # macOS (Intel)
-curl -L https://github.com/wweaver/preso/releases/latest/download/preso-darwin-x64 -o preso
+curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-darwin-x64 -o preso
 chmod +x preso && sudo mv preso /usr/local/bin/
 
-# Linux
-curl -L https://github.com/wweaver/preso/releases/latest/download/preso-linux-x64 -o preso
+# Linux (x64)
+curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-linux-x64 -o preso
 chmod +x preso && sudo mv preso /usr/local/bin/
+
+# Linux (ARM64)
+curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-linux-arm64 -o preso
+chmod +x preso && sudo mv preso /usr/local/bin/
+
+# Windows (PowerShell as Administrator)
+Invoke-WebRequest -Uri https://github.com/wweaver/preso/releases/latest/download/preso-windows-x64.exe -OutFile C:\Windows\preso.exe
 ```
 
 ## Quick Start
@@ -64,7 +51,7 @@ preso serve
 | `preso build` | Build static site for deployment |
 | `preso pdf` | Export to PDF |
 | `preso present` | Start presenter mode with speaker notes |
-| `preso theme` | Manage themes (list, set, add) |
+| `preso theme` | Manage themes (list, set, browse) |
 | `preso config` | Manage global configuration |
 
 Each command has detailed help: `preso <command> -h`
@@ -104,6 +91,8 @@ preso llm debug        # Troubleshooting information
 preso llm schema       # Structured command schema
 ```
 
+For AI coding assistants (OpenCode, Claude Code, etc.), see the [Installation Guide](docs/how-to/install.md#for-ai-coding-assistants).
+
 ## Development
 
 For contributors using [devenv](https://devenv.sh):
@@ -114,6 +103,10 @@ preso-dev serve        # Run CLI in dev mode
 preso-build            # Build binary for current platform
 preso-build-all        # Build for all platforms
 ```
+
+## Documentation
+
+See [docs/](docs/index.md) for full documentation.
 
 ## License
 

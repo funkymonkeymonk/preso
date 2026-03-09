@@ -4,21 +4,7 @@ In this tutorial, you'll create your first presentation and see it running in yo
 
 ## Prerequisites
 
-You need the `preso` binary installed. See [Installation](../setup/ai-agent-install.md) for download links, or use:
-
-```bash
-# macOS (Apple Silicon)
-curl -L https://github.com/wweaver/preso/releases/latest/download/preso-darwin-arm64 -o preso
-chmod +x preso && sudo mv preso /usr/local/bin/
-
-# macOS (Intel)
-curl -L https://github.com/wweaver/preso/releases/latest/download/preso-darwin-x64 -o preso
-chmod +x preso && sudo mv preso /usr/local/bin/
-
-# Linux (x64)
-curl -L https://github.com/wweaver/preso/releases/latest/download/preso-linux-x64 -o preso
-chmod +x preso && sudo mv preso /usr/local/bin/
-```
+You need the `preso` binary installed. See [Installation](../how-to/install.md) for platform-specific instructions.
 
 Verify installation:
 
@@ -70,7 +56,7 @@ Open `slides.md` in your editor. You'll see something like:
 
 ```markdown
 ---
-theme: seriph
+theme: default
 title: My First Talk
 ---
 
@@ -83,7 +69,7 @@ Change the title and add a second slide:
 
 ```markdown
 ---
-theme: seriph
+theme: default
 title: My First Talk
 ---
 
@@ -108,15 +94,6 @@ In the browser:
 - **Arrow keys** or **Space** advance slides
 - **Overview mode**: Press `o` to see all slides
 - **Presenter mode**: Press `p` for speaker view
-
-## What You've Accomplished
-
-You've:
-1. Installed the preso CLI
-2. Created a new presentation
-3. Started the development server
-4. Made live edits to your slides
-5. Learned the basic navigation controls
 
 ## Next Steps
 

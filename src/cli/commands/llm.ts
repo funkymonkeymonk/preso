@@ -11,7 +11,6 @@
 import {
   findSlidesFile,
   getConfigPaths,
-  getLogFile,
   isPortAvailable,
 } from "../utils/config";
 import { version } from "../version";
@@ -27,7 +26,7 @@ COMMANDS (run with -h for options):
   build    Static site -> ./dist
   pdf      Export PDF
   present  Speaker view + notes
-  theme    list|set|add
+  theme    list|set|browse
   config   show|set|path
 
 COMMON CHAINS:
@@ -41,7 +40,6 @@ ERRORS:
   PDF fails      -> bunx playwright install chromium
 
 STATE: ~/.config/preso/config.json
-LOGS:  .preso.log (cwd)
 DOCS:  https://sli.dev`;
 
 export async function llmCommand(args: string[]): Promise<void> {
@@ -82,7 +80,6 @@ async function showStatus(): Promise<void> {
     slidesFile: slidesPath,
     port3030Available: port3030,
     configDir: paths.configDir,
-    logFile: getLogFile(cwd),
   };
 
   console.log(JSON.stringify(status, null, 2));
@@ -94,14 +91,12 @@ async function showStatus(): Promise<void> {
 async function showDebug(): Promise<void> {
   const cwd = process.cwd();
   const slidesPath = findSlidesFile(cwd);
-  const logFile = getLogFile(cwd);
   const paths = getConfigPaths();
 
   console.log(`=== preso debug ===
 version: ${version}
 cwd: ${cwd}
 slides: ${slidesPath || "NOT FOUND"}
-log: ${logFile}
 config: ${paths.configFile}
 
 === port check ===`);
@@ -147,7 +142,12 @@ function showSchema(): void {
       },
       pdf: {
         args: [],
-        options: { out: "string", dark: "boolean" },
+        options: {
+          out: "string",
+          dark: "boolean",
+          "with-clicks": "boolean",
+          "with-toc": "boolean",
+        },
         prereq: "slides.md exists, playwright installed",
         creates: "<name>.pdf",
       },
@@ -158,11 +158,11 @@ function showSchema(): void {
         opens: "/presenter view",
       },
       theme: {
-        subcommands: ["list", "set <name>", "add <path>"],
+        subcommands: ["list", "set <name>", "browse"],
         prereq: {
           set: "slides.md exists",
           list: "none",
-          add: "none",
+          browse: "none",
         },
       },
       config: {

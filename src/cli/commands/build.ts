@@ -5,8 +5,8 @@
 import { basename, join } from "node:path";
 import { parseArgs } from "node:util";
 
-import { requireSlides } from "../utils/config";
-import { ExitCode, Spinner, error, exitWithError, info } from "../utils/output";
+import { requireSlides, runSlidevBuild } from "../utils/config";
+import { ExitCode, Spinner, info } from "../utils/output";
 
 const HELP = `
 Build the presentation as a static site.
@@ -48,46 +48,27 @@ export async function buildCommand(args: string[]): Promise<void> {
   const cwd = process.cwd();
   const slidesPath = requireSlides(cwd);
 
-  const outDir = values.out || "dist";
-  const base = values.base || "/";
+  const outDir = values.out!;
+  const base = values.base!;
   const name = basename(cwd);
 
   const spinner = new Spinner(`Building: ${name}`).start();
 
-  const slidevArgs = [
-    "slidev",
-    "build",
+  const result = await runSlidevBuild({
     slidesPath,
-    "--out",
-    outDir,
-    "--base",
-    base,
-  ];
+    args: ["build", "--out", outDir, "--base", base],
+    cwd,
+  });
 
-  try {
-    const proc = Bun.spawn(["bunx", ...slidevArgs], {
-      cwd,
-      stdout: "pipe",
-      stderr: "pipe",
-    });
-
-    const exitCode = await proc.exited;
-
-    if (exitCode === 0) {
-      const outputPath = join(cwd, outDir);
-      spinner.succeed(`Built: ${outputPath}`);
-      console.log("");
-      info("To preview:");
-      console.log(`  cd ${outDir} && bunx serve`);
-    } else {
-      spinner.fail("Build failed");
-      const stderr = await new Response(proc.stderr).text();
-      if (stderr) console.error(stderr);
-      process.exit(ExitCode.BUILD_FAILED);
-    }
-  } catch (err) {
+  if (result.success) {
+    const outputPath = join(cwd, outDir);
+    spinner.succeed(`Built: ${outputPath}`);
+    console.log("");
+    info("To preview:");
+    console.log(`  cd ${outDir} && bunx serve`);
+  } else {
     spinner.fail("Build failed");
-    if (err instanceof Error) error(err.message);
+    if (result.stderr) console.error(result.stderr);
     process.exit(ExitCode.BUILD_FAILED);
   }
 }

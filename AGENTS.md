@@ -50,74 +50,21 @@ preso llm schema         # Structured command schema for tool use
 |------|----------|
 | Presentation | `./slides.md` (current directory) |
 | Global config | `~/.config/preso/config.json` |
-| Custom themes | `~/.config/preso/themes/` |
-| Logs | `./.preso.log` |
 
-## Slidev Syntax
+## Documentation
 
-```markdown
----
-theme: seriph
----
+- [Full documentation](docs/index.md)
+- [CLI reference](docs/reference/cli-commands.md)
+- [Slidev syntax](docs/reference/slidev-syntax.md)
 
-# Slide Title
+## Contributing
 
-Content here
-
----
-
-# Next Slide
-```
-
-### Layouts
-`cover`, `default`, `center`, `two-cols`, `image-right`, `section`, `quote`
-
-### Code
-````markdown
-```ts {2,3}           # Highlight lines
-```ts {1|2-3|all}     # Click to reveal
-````
-
-### Notes
-```markdown
-# Slide
-
-Content
-
-<!--
-Speaker notes here
--->
-```
-
-## CLI Architecture
-
-```
-src/cli/
-├── index.ts           # Entry, command routing
-├── version.ts         # Build-time version
-├── commands/
-│   ├── init.ts        # preso init
-│   ├── serve.ts       # preso serve
-│   ├── build.ts       # preso build
-│   ├── pdf.ts         # preso pdf
-│   ├── present.ts     # preso present
-│   ├── theme.ts       # preso theme
-│   ├── config.ts      # preso config
-│   └── llm.ts         # preso llm
-└── utils/
-    ├── config.ts      # Global + local config
-    ├── output.ts      # Console helpers
-    ├── templates.ts   # Embedded templates
-    └── themes.ts      # Theme registry
-```
-
-## Building (Contributors Only)
-
-For contributors developing the preso CLI itself using [devenv](https://devenv.sh):
+For contributors developing the preso CLI:
 
 ```bash
 devenv shell
 preso-dev serve          # Run in dev mode
 preso-build              # Build current platform
-preso-build-all          # Build all platforms
 ```
+
+See [Contributing Guide](docs/contributing/getting-started.md) for details.
