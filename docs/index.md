@@ -14,8 +14,10 @@ Practical guides for accomplishing specific tasks.
 
 - [Install preso](how-to/install.md) - Download and install the CLI
 - [Apply Themes](how-to/apply-themes.md) - Change the visual appearance
+- [Use Presenter Mode](how-to/use-presenter-mode.md) - Present with speaker notes
 - [Build and Export](how-to/build-and-export.md) - Create distributable versions
-- [Troubleshoot Common Issues](how-to/troubleshoot-server.md) - Fix common problems
+- [Deploy Your Presentation](how-to/deploy.md) - Host on GitHub Pages, Netlify, etc.
+- [Troubleshoot Common Issues](how-to/troubleshoot.md) - Fix common problems
 - [Create Custom Theme](how-to/create-custom-theme.md) - Make your own theme
 
 ## Reference (Information-oriented)
@@ -38,11 +40,7 @@ Background and context to help you understand the system.
 Documentation for contributors developing the preso CLI itself.
 
 - [Getting Started](contributing/getting-started.md) - Set up development environment
-- [Development Commands](contributing/development-commands.md) - Devenv scripts reference
-- [Start Agent Session](contributing/start-agent-session.md) - AI-assisted CLI development
-- [Agent Session Architecture](contributing/agent-sessions.md) - Session design decisions
-- [Process-Compose Integration](contributing/process-compose-integration.md) - Dev environment architecture
-- [Process-Compose API](contributing/process-compose-api.md) - Unix socket API reference
+- [Development Commands](contributing/development-commands.md) - Available dev commands
 
 ---
 

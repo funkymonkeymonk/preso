@@ -65,8 +65,17 @@ jobs:
     name: Create Release
     needs: build
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION="${{ github.event.inputs.version || github.ref_name }}"
+          VERSION="${VERSION#v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -97,13 +106,49 @@ jobs:
             dist/checksums.txt
 
   homebrew:
-    name: Update Homebrew Tap
+    name: Update Homebrew Formula
     needs: release
     runs-on: ubuntu-latest
     if: ${{ !contains(github.ref_name, '-') }}
     steps:
-      - name: Trigger Homebrew tap update
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download all artifacts for checksums
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Generate SHA256 checksums
+        id: checksums
         run: |
-          echo "Homebrew tap update would be triggered here"
-          # This would typically dispatch to a homebrew-tap repo
-          # gh workflow run update-formula.yml --repo $ORG/homebrew-tap
+          cd dist
+          echo "darwin_arm64=$(sha256sum preso-darwin-arm64 | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "darwin_x64=$(sha256sum preso-darwin-x64 | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "linux_arm64=$(sha256sum preso-linux-arm64 | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "linux_x64=$(sha256sum preso-linux-x64 | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+
+      - name: Generate Homebrew formula
+        run: |
+          VERSION="${{ needs.release.outputs.version }}"
+          
+          # Create formula from template
+          sed -e "s/VERSION_PLACEHOLDER/$VERSION/g" \
+              -e "s/SHA256_DARWIN_ARM64_PLACEHOLDER/${{ steps.checksums.outputs.darwin_arm64 }}/g" \
+              -e "s/SHA256_DARWIN_X64_PLACEHOLDER/${{ steps.checksums.outputs.darwin_x64 }}/g" \
+              -e "s/SHA256_LINUX_ARM64_PLACEHOLDER/${{ steps.checksums.outputs.linux_arm64 }}/g" \
+              -e "s/SHA256_LINUX_X64_PLACEHOLDER/${{ steps.checksums.outputs.linux_x64 }}/g" \
+              Formula/preso.rb.template > Formula/preso.rb
+          
+          cat Formula/preso.rb
+
+      - name: Commit and push formula
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/preso.rb
+          git commit -m "Update Homebrew formula to ${{ needs.release.outputs.version }}"
+          git push

@@ -14,7 +14,10 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome check --write src/ scripts/",
     "lint:check": "biome check src/ scripts/",
-    "format": "biome format --write src/ scripts/"
+    "format": "biome format --write src/ scripts/",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage"
   },
   "dependencies": {
     "@slidev/cli": "^51.0.0",

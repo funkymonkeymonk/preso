@@ -38,7 +38,7 @@ local/
 session-*.md
 
 # Compiled CLI binary
-cli
+/cli
 
 # NPM lock file (project uses Bun)
 package-lock.json

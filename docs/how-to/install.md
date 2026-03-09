@@ -2,23 +2,52 @@
 
 Quick setup guide for installing the preso CLI.
 
-## One-Line Install
+## Homebrew (Recommended for macOS/Linux)
 
 ```bash
-# macOS (Apple Silicon)
-sudo curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-darwin-arm64 -o /usr/local/bin/preso && sudo chmod +x /usr/local/bin/preso
+brew install funkymonkeymonk/preso/preso
+```
 
-# macOS (Intel)
-sudo curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-darwin-x64 -o /usr/local/bin/preso && sudo chmod +x /usr/local/bin/preso
+Or tap first for shorter commands:
 
-# Linux (x64)
-sudo curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-linux-x64 -o /usr/local/bin/preso && sudo chmod +x /usr/local/bin/preso
+```bash
+brew tap funkymonkeymonk/preso
+brew install preso
+```
 
-# Linux (ARM64)
-sudo curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-linux-arm64 -o /usr/local/bin/preso && sudo chmod +x /usr/local/bin/preso
+## Manual Download
 
-# Windows (PowerShell as Administrator)
-Invoke-WebRequest -Uri https://github.com/wweaver/preso/releases/latest/download/preso-windows-x64.exe -OutFile C:\Windows\preso.exe
+### macOS
+
+```bash
+# Apple Silicon (M1/M2/M3)
+sudo curl -fsSL https://github.com/funkymonkeymonk/preso/releases/latest/download/preso-darwin-arm64 -o /usr/local/bin/preso && sudo chmod +x /usr/local/bin/preso
+
+# Intel
+sudo curl -fsSL https://github.com/funkymonkeymonk/preso/releases/latest/download/preso-darwin-x64 -o /usr/local/bin/preso && sudo chmod +x /usr/local/bin/preso
+```
+
+### Linux
+
+```bash
+# x64
+sudo curl -fsSL https://github.com/funkymonkeymonk/preso/releases/latest/download/preso-linux-x64 -o /usr/local/bin/preso && sudo chmod +x /usr/local/bin/preso
+
+# ARM64
+sudo curl -fsSL https://github.com/funkymonkeymonk/preso/releases/latest/download/preso-linux-arm64 -o /usr/local/bin/preso && sudo chmod +x /usr/local/bin/preso
+```
+
+### Windows
+
+```powershell
+# PowerShell (run as Administrator for system-wide install)
+# Option 1: Install to user directory (recommended)
+New-Item -ItemType Directory -Force -Path "$env:LOCALAPPDATA\preso"
+Invoke-WebRequest -Uri https://github.com/funkymonkeymonk/preso/releases/latest/download/preso-windows-x64.exe -OutFile "$env:LOCALAPPDATA\preso\preso.exe"
+# Add to PATH: [Environment]::SetEnvironmentVariable("Path", $env:Path + ";$env:LOCALAPPDATA\preso", "User")
+
+# Option 2: System-wide (requires Admin)
+Invoke-WebRequest -Uri https://github.com/funkymonkeymonk/preso/releases/latest/download/preso-windows-x64.exe -OutFile "C:\Program Files\preso\preso.exe"
 ```
 
 ## Verify Installation
@@ -29,9 +58,18 @@ preso --version
 
 ## Updating
 
+### Homebrew
+
 ```bash
-# Auto-detects platform (requires sudo)
-sudo curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/' | sed 's/aarch64/arm64/') -o /usr/local/bin/preso && sudo chmod +x /usr/local/bin/preso
+brew upgrade preso
+```
+
+### Manual
+
+Re-run the installation command for your platform, or use this auto-detecting script (macOS/Linux):
+
+```bash
+sudo curl -fsSL https://github.com/funkymonkeymonk/preso/releases/latest/download/preso-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/' | sed 's/aarch64/arm64/') -o /usr/local/bin/preso && sudo chmod +x /usr/local/bin/preso
 ```
 
 ## Troubleshooting
@@ -60,12 +98,12 @@ Copy the preso skill to your OpenCode skills directory:
 
 ```bash
 mkdir -p ~/.config/opencode/skills/preso
-curl -fsSL https://raw.githubusercontent.com/wweaver/preso/main/.opencode/skills/preso/SKILL.md -o ~/.config/opencode/skills/preso/SKILL.md
+curl -fsSL https://raw.githubusercontent.com/funkymonkeymonk/preso/main/.opencode/skills/preso/SKILL.md -o ~/.config/opencode/skills/preso/SKILL.md
 ```
 
 Or for project-local installation:
 
 ```bash
 mkdir -p .opencode/skills/preso
-curl -fsSL https://raw.githubusercontent.com/wweaver/preso/main/.opencode/skills/preso/SKILL.md -o .opencode/skills/preso/SKILL.md
+curl -fsSL https://raw.githubusercontent.com/funkymonkeymonk/preso/main/.opencode/skills/preso/SKILL.md -o .opencode/skills/preso/SKILL.md
 ```
