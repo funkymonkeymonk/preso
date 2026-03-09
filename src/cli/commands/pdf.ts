@@ -2,11 +2,17 @@
  * pdf command - Export presentation to PDF
  */
 
-import { existsSync } from "fs";
-import { join, basename } from "path";
-import { parseArgs } from "util";
-import { success, error, info, Spinner } from "../utils/output";
-import { findSlidesFile } from "../utils/config";
+import { basename } from "node:path";
+import { parseArgs } from "node:util";
+
+import { requireSlides } from "../utils/config";
+import {
+  ExitCode,
+  Spinner,
+  error,
+  exitMissingDependency,
+  info,
+} from "../utils/output";
 
 const HELP = `
 Export the presentation to PDF.
@@ -50,26 +56,14 @@ export async function pdfCommand(args: string[]): Promise<void> {
   }
 
   const cwd = process.cwd();
-  const slidesPath = findSlidesFile(cwd);
-
-  if (!slidesPath) {
-    error("No slides.md found in current directory");
-    console.log("");
-    info("To create a presentation:");
-    console.log("  preso init");
-    process.exit(1);
-  }
+  const slidesPath = requireSlides(cwd);
 
   const name = basename(cwd);
   const outputPath = values.out || `${name}.pdf`;
 
   const spinner = new Spinner(`Exporting: ${name}`).start();
 
-  const slidevArgs = [
-    "slidev", "export",
-    slidesPath,
-    "--output", outputPath,
-  ];
+  const slidevArgs = ["slidev", "export", slidesPath, "--output", outputPath];
 
   if (values.dark) slidevArgs.push("--dark");
   if (values["with-clicks"]) slidevArgs.push("--with-clicks");
@@ -90,17 +84,15 @@ export async function pdfCommand(args: string[]): Promise<void> {
       spinner.fail("Export failed");
       const stderr = await new Response(proc.stderr).text();
       if (stderr) console.error(stderr);
-      
+
       if (stderr.includes("playwright") || stderr.includes("chromium")) {
-        console.log("");
-        info("Playwright required:");
-        console.log("  bunx playwright install chromium");
+        exitMissingDependency("Playwright", "bunx playwright install chromium");
       }
-      process.exit(1);
+      process.exit(ExitCode.EXPORT_FAILED);
     }
   } catch (err) {
     spinner.fail("Export failed");
     if (err instanceof Error) error(err.message);
-    process.exit(1);
+    process.exit(ExitCode.EXPORT_FAILED);
   }
 }

@@ -123,4 +123,4 @@ You've:
 - **Add more slides:** Learn Slidev syntax in the [Slidev Syntax Reference](../reference/slidev-syntax.md)
 - **Apply a theme:** See [How to Apply Themes](../how-to/apply-themes.md)
 - **Build for deployment:** See [How to Build and Export](../how-to/build-and-export.md)
-- **Work with multiple presentations:** See [How to Switch Presentations](../how-to/switch-presentations.md)
+- **Multiple presentations:** Each presentation is its own directory - run `preso serve -p 3031` in another directory for parallel work

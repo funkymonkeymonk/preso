@@ -1,16 +1,24 @@
 /**
  * Build script for preso CLI
- * 
+ *
  * Creates standalone executables for multiple platforms
  */
 
-export {}; // Make this a module
+// Required to enable top-level await
+export {};
+
+type BunTarget =
+  | "bun-darwin-arm64"
+  | "bun-darwin-x64"
+  | "bun-linux-x64"
+  | "bun-linux-arm64"
+  | "bun-windows-x64";
 
 const pkg = await Bun.file("package.json").json();
 const version = pkg.version || "0.0.1";
 
 interface BuildTarget {
-  target: string;
+  target: BunTarget;
   outfile: string;
 }
 
@@ -23,39 +31,32 @@ const targets: BuildTarget[] = [
 ];
 
 const args = process.argv.slice(2);
-const currentPlatformOnly = args.includes("--current") || args.includes("-c");
 const allPlatforms = args.includes("--all") || args.includes("-a");
 
-// Determine which targets to build
-let selectedTargets: BuildTarget[];
-
-if (currentPlatformOnly) {
-  const platform = process.platform === "darwin" ? "darwin" 
-    : process.platform === "win32" ? "windows" 
-    : "linux";
+/**
+ * Get build targets for the current platform
+ */
+function getCurrentPlatformTargets(): BuildTarget[] {
+  const platform =
+    process.platform === "darwin"
+      ? "darwin"
+      : process.platform === "win32"
+        ? "windows"
+        : "linux";
   const arch = process.arch === "arm64" ? "arm64" : "x64";
-  selectedTargets = targets.filter(t => 
-    t.target.includes(platform) && t.target.includes(arch)
-  );
-} else if (allPlatforms) {
-  selectedTargets = targets;
-} else {
-  // Default: build for current platform
-  const platform = process.platform === "darwin" ? "darwin" 
-    : process.platform === "win32" ? "windows" 
-    : "linux";
-  const arch = process.arch === "arm64" ? "arm64" : "x64";
-  selectedTargets = targets.filter(t => 
-    t.target.includes(platform) && t.target.includes(arch)
+  return targets.filter(
+    (t) => t.target.includes(platform) && t.target.includes(arch),
   );
 }
+
+const selectedTargets = allPlatforms ? targets : getCurrentPlatformTargets();
 
 console.log(`Building preso v${version}...`);
 console.log("");
 
 for (const { target, outfile } of selectedTargets) {
   console.log(`Building for ${target}...`);
-  
+
   try {
     const result = await Bun.build({
       entrypoints: ["./src/cli/index.ts"],
@@ -63,7 +64,7 @@ for (const { target, outfile } of selectedTargets) {
       naming: {
         entry: outfile,
       },
-      target: target as any,
+      target,
       minify: true,
       sourcemap: "linked",
       define: {
@@ -91,24 +92,29 @@ console.log("Build complete!");
 if (selectedTargets.length === 1 || allPlatforms) {
   console.log("");
   console.log("Creating standalone executables...");
-  
+
   for (const { target, outfile } of selectedTargets) {
     const compiledOutfile = outfile.replace("dist/", "dist/bin/");
     console.log(`Compiling for ${target}...`);
-    
-    const proc = Bun.spawn([
-      "bun", "build",
-      "--compile",
-      `--target=${target}`,
-      "--minify",
-      `--define=BUILD_VERSION="${version}"`,
-      "./src/cli/index.ts",
-      "--outfile", compiledOutfile,
-    ], {
-      stdout: "pipe",
-      stderr: "pipe",
-    });
-    
+
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "build",
+        "--compile",
+        `--target=${target}`,
+        "--minify",
+        `--define=BUILD_VERSION="${version}"`,
+        "./src/cli/index.ts",
+        "--outfile",
+        compiledOutfile,
+      ],
+      {
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    );
+
     const exitCode = await proc.exited;
     if (exitCode === 0) {
       console.log(`  ✓ ${compiledOutfile}`);

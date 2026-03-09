@@ -3,7 +3,9 @@ node_modules/
 
 # Devenv
 .devenv/
-.devenv.flake.nix
+.devenv*
+devenv.local.nix
+devenv.local.yaml
 
 # Build output
 dist/
@@ -13,11 +15,6 @@ components.d.ts
 
 # PDF exports
 *.pdf
-
-# Devenv
-.devenv*
-devenv.local.nix
-devenv.local.yaml
 
 # direnv
 .direnv
@@ -39,5 +36,6 @@ local/
 
 # AI session logs
 session-*.md
+
+# Compiled CLI binary
 cli
-dist/

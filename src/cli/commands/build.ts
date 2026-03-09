@@ -2,11 +2,11 @@
  * build command - Build static site
  */
 
-import { existsSync } from "fs";
-import { join, basename } from "path";
-import { parseArgs } from "util";
-import { success, error, info, Spinner } from "../utils/output";
-import { findSlidesFile } from "../utils/config";
+import { basename, join } from "node:path";
+import { parseArgs } from "node:util";
+
+import { requireSlides } from "../utils/config";
+import { ExitCode, Spinner, error, exitWithError, info } from "../utils/output";
 
 const HELP = `
 Build the presentation as a static site.
@@ -46,15 +46,7 @@ export async function buildCommand(args: string[]): Promise<void> {
   }
 
   const cwd = process.cwd();
-  const slidesPath = findSlidesFile(cwd);
-
-  if (!slidesPath) {
-    error("No slides.md found in current directory");
-    console.log("");
-    info("To create a presentation:");
-    console.log("  preso init");
-    process.exit(1);
-  }
+  const slidesPath = requireSlides(cwd);
 
   const outDir = values.out || "dist";
   const base = values.base || "/";
@@ -63,10 +55,13 @@ export async function buildCommand(args: string[]): Promise<void> {
   const spinner = new Spinner(`Building: ${name}`).start();
 
   const slidevArgs = [
-    "slidev", "build",
+    "slidev",
+    "build",
     slidesPath,
-    "--out", outDir,
-    "--base", base,
+    "--out",
+    outDir,
+    "--base",
+    base,
   ];
 
   try {
@@ -88,11 +83,11 @@ export async function buildCommand(args: string[]): Promise<void> {
       spinner.fail("Build failed");
       const stderr = await new Response(proc.stderr).text();
       if (stderr) console.error(stderr);
-      process.exit(1);
+      process.exit(ExitCode.BUILD_FAILED);
     }
   } catch (err) {
     spinner.fail("Build failed");
     if (err instanceof Error) error(err.message);
-    process.exit(1);
+    process.exit(ExitCode.BUILD_FAILED);
   }
 }

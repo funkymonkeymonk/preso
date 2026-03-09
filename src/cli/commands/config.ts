@@ -2,9 +2,20 @@
  * config command - Manage global configuration
  */
 
-import { parseArgs } from "util";
-import { success, error, info, header, colors } from "../utils/output";
-import { getGlobalConfig, saveGlobalConfig, getConfigPaths } from "../utils/config";
+import { parseArgs } from "node:util";
+
+import {
+  getConfigPaths,
+  getGlobalConfig,
+  saveGlobalConfig,
+} from "../utils/config";
+import {
+  ExitCode,
+  colors,
+  exitWithError,
+  header,
+  success,
+} from "../utils/output";
 
 const HELP = `
 Manage preso configuration.
@@ -21,7 +32,6 @@ CONFIGURABLE VALUES
   defaultTheme      Theme for new presentations (default: default)
   defaultTemplate   Template for new presentations (default: basic)
   defaultPort       Port for dev server (default: 3030)
-  editor            Editor command for 'preso edit'
 
 EXAMPLES
   preso config show                    # View config
@@ -50,9 +60,10 @@ export async function configCommand(args: string[]): Promise<void> {
       showPath();
       break;
     default:
-      error(`Unknown command: ${subcommand}`);
-      console.log(HELP);
-      process.exit(1);
+      exitWithError(`Unknown command: ${subcommand}`, {
+        code: ExitCode.INVALID_ARGUMENT,
+        hint: "Run 'preso config --help' for usage",
+      });
   }
 }
 
@@ -64,11 +75,10 @@ async function showConfig(): Promise<void> {
   console.log(`  defaultTheme:    ${config.defaultTheme}`);
   console.log(`  defaultTemplate: ${config.defaultTemplate}`);
   console.log(`  defaultPort:     ${config.defaultPort}`);
-  console.log(`  editor:          ${config.editor || "(not set)"}`);
   console.log("");
   console.log(`  themes:          ${config.themes.join(", ")}`);
   console.log("");
-  
+
   const paths = getConfigPaths();
   console.log(`${colors.dim}Config file: ${paths.configFile}${colors.reset}`);
 }
@@ -78,30 +88,33 @@ async function setConfig(args: string[]): Promise<void> {
   const value = valueParts.join(" ");
 
   if (!key || !value) {
-    error("Both key and value required");
-    console.log("Usage: preso config set <key> <value>");
-    process.exit(1);
+    exitWithError("Both key and value required", {
+      code: ExitCode.INVALID_ARGUMENT,
+      hint: "Usage: preso config set <key> <value>",
+    });
   }
 
-  const validKeys = ["defaultTheme", "defaultTemplate", "defaultPort", "editor"];
+  const validKeys = ["defaultTheme", "defaultTemplate", "defaultPort"];
   if (!validKeys.includes(key)) {
-    error(`Unknown config key: ${key}`);
-    console.log(`Valid keys: ${validKeys.join(", ")}`);
-    process.exit(1);
+    exitWithError(`Unknown config key: ${key}`, {
+      code: ExitCode.INVALID_ARGUMENT,
+      hint: `Valid keys: ${validKeys.join(", ")}`,
+    });
   }
-
-  const config = await getGlobalConfig();
 
   // Type-specific handling
   if (key === "defaultPort") {
-    const port = parseInt(value, 10);
-    if (isNaN(port) || port < 1 || port > 65535) {
-      error("Port must be a number between 1-65535");
-      process.exit(1);
+    const port = Number.parseInt(value, 10);
+    if (Number.isNaN(port) || port < 1 || port > 65535) {
+      exitWithError("Port must be a number between 1-65535", {
+        code: ExitCode.INVALID_ARGUMENT,
+      });
     }
     await saveGlobalConfig({ defaultPort: port });
   } else {
-    await saveGlobalConfig({ [key]: value });
+    await saveGlobalConfig({
+      [key]: value,
+    } as Partial<{ defaultTheme: string; defaultTemplate: string }>);
   }
 
   success(`Set ${key} = ${value}`);
