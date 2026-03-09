@@ -4,39 +4,56 @@ In this tutorial, you'll create your first presentation and see it running in yo
 
 ## Prerequisites
 
-You need [devenv](https://devenv.sh) installed on your system. devenv manages all other dependencies automatically.
-
-## Step 1: Enter the Development Environment
-
-Open your terminal and navigate to the PRESO repository. Then enter the devenv shell:
+You need the `preso` binary installed. See [Installation](../setup/ai-agent-install.md) for download links, or use:
 
 ```bash
-devenv shell
+# macOS (Apple Silicon)
+curl -L https://github.com/wweaver/preso/releases/latest/download/preso-darwin-arm64 -o preso
+chmod +x preso && sudo mv preso /usr/local/bin/
+
+# macOS (Intel)
+curl -L https://github.com/wweaver/preso/releases/latest/download/preso-darwin-x64 -o preso
+chmod +x preso && sudo mv preso /usr/local/bin/
+
+# Linux (x64)
+curl -L https://github.com/wweaver/preso/releases/latest/download/preso-linux-x64 -o preso
+chmod +x preso && sudo mv preso /usr/local/bin/
 ```
 
-You'll see a welcome message listing available commands. This confirms the environment is ready.
-
-## Step 2: Create Your First Presentation
-
-Let's create a presentation called "my-first-talk":
+Verify installation:
 
 ```bash
-slides-new my-first-talk
+preso --version
 ```
 
-This creates a new presentation at `presentations/my-first-talk/slides.md` with starter content and automatically selects it as the current presentation.
+## Step 1: Create a Presentation Directory
+
+Each presentation lives in its own directory. Create one and navigate to it:
+
+```bash
+mkdir my-first-talk
+cd my-first-talk
+```
+
+## Step 2: Initialize the Presentation
+
+Create the slides file and dependencies:
+
+```bash
+preso init
+```
+
+This creates a `slides.md` file with starter content.
 
 ## Step 3: Start the Development Server
 
 Start the Slidev development server:
 
 ```bash
-devenv up
+preso serve
 ```
 
-You'll see the process-compose TUI showing the `slides` process running.
-
-> **Tip:** For background operation (useful for scripts or AI agents), use `slides-serve` instead. See [CLI Commands Reference](../reference/cli-commands.md).
+You'll see output indicating the server is running on port 3030.
 
 ## Step 4: View Your Presentation
 
@@ -49,7 +66,7 @@ Try these URLs:
 
 ## Step 5: Make Your First Edit
 
-Open `presentations/my-first-talk/slides.md` in your editor. You'll see something like:
+Open `slides.md` in your editor. You'll see something like:
 
 ```markdown
 ---
@@ -78,7 +95,7 @@ My first presentation using Slidev.
 
 # What I Learned
 
-- PRESO manages presentations with devenv
+- Each presentation is a directory with slides.md
 - Slides are written in Markdown
 - Changes appear instantly in the browser
 ```
@@ -95,7 +112,7 @@ In the browser:
 ## What You've Accomplished
 
 You've:
-1. Set up the PRESO development environment
+1. Installed the preso CLI
 2. Created a new presentation
 3. Started the development server
 4. Made live edits to your slides

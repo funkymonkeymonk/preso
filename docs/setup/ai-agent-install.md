@@ -6,16 +6,16 @@ Quick setup for using preso with OpenCode, Claude Code, or other AI coding assis
 
 ```bash
 # macOS (Apple Silicon)
-curl -fsSL https://github.com/funkymonkeymonk/preso/releases/download/latest/preso-darwin-arm64 -o /usr/local/bin/preso && chmod +x /usr/local/bin/preso
+curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-darwin-arm64 -o /usr/local/bin/preso && chmod +x /usr/local/bin/preso
 
 # macOS (Intel)
-curl -fsSL https://github.com/funkymonkeymonk/preso/releases/download/latest/preso-darwin-x64 -o /usr/local/bin/preso && chmod +x /usr/local/bin/preso
+curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-darwin-x64 -o /usr/local/bin/preso && chmod +x /usr/local/bin/preso
 
 # Linux (x64)
-curl -fsSL https://github.com/funkymonkeymonk/preso/releases/download/latest/preso-linux-x64 -o /usr/local/bin/preso && chmod +x /usr/local/bin/preso
+curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-linux-x64 -o /usr/local/bin/preso && chmod +x /usr/local/bin/preso
 
 # Linux (ARM64)
-curl -fsSL https://github.com/funkymonkeymonk/preso/releases/download/latest/preso-linux-arm64 -o /usr/local/bin/preso && chmod +x /usr/local/bin/preso
+curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-linux-arm64 -o /usr/local/bin/preso && chmod +x /usr/local/bin/preso
 ```
 
 ## Verify Installation
@@ -45,21 +45,21 @@ Copy the preso skill to your OpenCode skills directory:
 
 ```bash
 mkdir -p ~/.config/opencode/skills/preso
-curl -fsSL https://raw.githubusercontent.com/funkymonkeymonk/preso/main/.opencode/skills/preso/SKILL.md -o ~/.config/opencode/skills/preso/SKILL.md
+curl -fsSL https://raw.githubusercontent.com/wweaver/preso/main/.opencode/skills/preso/SKILL.md -o ~/.config/opencode/skills/preso/SKILL.md
 ```
 
 Or if working in a project with preso:
 
 ```bash
 mkdir -p .opencode/skills/preso
-curl -fsSL https://raw.githubusercontent.com/funkymonkeymonk/preso/main/.opencode/skills/preso/SKILL.md -o .opencode/skills/preso/SKILL.md
+curl -fsSL https://raw.githubusercontent.com/wweaver/preso/main/.opencode/skills/preso/SKILL.md -o .opencode/skills/preso/SKILL.md
 ```
 
 ## Updating
 
 ```bash
-# Get latest version
-curl -fsSL https://github.com/funkymonkeymonk/preso/releases/download/latest/preso-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/' | sed 's/aarch64/arm64/') -o /usr/local/bin/preso && chmod +x /usr/local/bin/preso
+# Get latest version (auto-detects platform)
+curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/' | sed 's/aarch64/arm64/') -o /usr/local/bin/preso && chmod +x /usr/local/bin/preso
 ```
 
 ## Troubleshooting

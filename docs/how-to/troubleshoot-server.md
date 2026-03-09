@@ -1,20 +1,18 @@
 # How to Troubleshoot the Development Server
 
-This guide helps you diagnose and fix common issues with the Slidev development server.
+This guide helps you diagnose and fix common issues with the preso development server.
 
 ## Port 3030 Not Responding
 
-### Step 1: Validate the presentation selection
+### Step 1: Verify you're in a presentation directory
 
 ```bash
-slides-validate
+preso llm status
 ```
 
-If this shows an error, fix the selection:
-
-```bash
-slides-select example
-```
+If this shows `"hasSlides": false`, you need to either:
+- Run `preso init` to create a presentation, or
+- `cd` to an existing presentation directory
 
 ### Step 2: Check what's on the port
 
@@ -22,47 +20,26 @@ slides-select example
 lsof -i :3030
 ```
 
-If another process is using port 3030, stop it or restart PRESO.
+If another process is using port 3030, either stop it or use a different port:
+
+```bash
+preso serve -p 3031
+```
 
 ### Step 3: Check server logs
 
-If using `slides-serve` (background mode):
+Logs are written to `.preso.log` in the presentation directory:
 
 ```bash
-cat .devenv/slides.log
+cat .preso.log
 ```
-
-If using `devenv up` (foreground mode), logs appear in the TUI.
 
 ### Step 4: Restart the server
 
-```bash
-# For background mode
-slides-stop
-slides-serve
-
-# For foreground mode
-# Press Ctrl+C in the TUI, then run:
-devenv up
-```
-
-## Multiple Slidev Processes Running
-
-Check for orphan processes:
+Stop the current server (Ctrl+C) and start again:
 
 ```bash
-pgrep -fl slidev
-```
-
-Kill all slidev processes and restart:
-
-```bash
-slides-stop
-# or
-pkill -f "slidev presentations"
-
-# Then restart
-slides-serve
+preso serve
 ```
 
 ## Server Not Starting
@@ -70,54 +47,42 @@ slides-serve
 Check the logs for errors:
 
 ```bash
-# Background mode logs
-cat .devenv/slides.log
-
-# Or check if slidev can start manually
-slides-dev
+cat .preso.log
 ```
 
-## Wrong Presentation Showing
-
-Check and fix the current selection:
-
-```bash
-slides-current
-slides-select <correct-name>
-```
-
-If using `slides-serve`, restart the server:
-
-```bash
-slides-stop
-slides-serve
-```
+Common issues:
+- Missing `slides.md` - run `preso init`
+- Port already in use - use `-p <other-port>`
+- Missing dependencies - the server should auto-install them
 
 ## Server Running But No Hot Reload
 
 Try restarting the server:
 
 ```bash
-slides-stop
-slides-serve
+# Stop with Ctrl+C, then:
+preso serve
 ```
-
-Or if using `devenv up`, press `r` in the TUI to restart the process.
 
 ## Quick Diagnosis Table
 
 | Symptom | Check | Fix |
 |---------|-------|-----|
-| Nothing on port 3030 | `slides-validate` | `slides-select <valid-name>` then `slides-serve` |
-| Wrong presentation | `slides-current` | `slides-select <correct-name>` |
-| Multiple processes | `pgrep -fl slidev` | `slides-stop` |
-| Server won't start | `cat .devenv/slides.log` | Check logs for errors |
+| Nothing on port 3030 | `preso llm status` | `preso init` or `cd` to presentation |
+| Port conflict | `lsof -i :3030` | `preso serve -p 3031` |
+| Server won't start | `cat .preso.log` | Check logs for errors |
+| No hot reload | Restart server | Ctrl+C then `preso serve` |
 
-## Background vs Foreground Mode
+## Getting Debug Info
 
-| Mode | Command | Best For | Logs |
-|------|---------|----------|------|
-| Background | `slides-serve` | Agents, automation | `.devenv/slides.log` |
-| Foreground | `devenv up` | Humans, debugging | TUI display |
+For detailed troubleshooting information:
 
-> For details on how the server architecture works, see [Process-Compose Integration](../explanation/process-compose-integration.md).
+```bash
+preso llm debug
+```
+
+This shows:
+- Current directory state
+- Port availability
+- Log file location
+- Configuration details

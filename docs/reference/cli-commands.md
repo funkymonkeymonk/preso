@@ -1,63 +1,125 @@
 # CLI Commands Reference
 
-All commands are available after running `devenv shell`.
+Reference for all `preso` commands.
 
-## Presentation Management
+## User Commands
 
-| Command | Description |
-|---------|-------------|
-| `slides-list` | List all presentations (marks current with `*`) |
-| `slides-select <name>` | Select a presentation to work on |
-| `slides-current` | Show currently selected presentation |
-| `slides-validate` | Verify current selection is valid |
-| `slides-new <name>` | Create a new presentation |
-| `slides-theme [name\|list]` | Apply a theme or list available themes |
-| `slides-serve` | Start dev server in background (for agents) |
-| `slides-stop` | Stop background dev server |
-| `slides-build` | Build static site for deployment |
-| `slides-pdf` | Export presentation to PDF |
-| `slides-present` | Open in presenter mode with remote control |
-| `slides-dev` | Start dev server standalone (prefer `devenv up` or `slides-serve`) |
+These commands are available to all users with the `preso` binary installed.
 
-## Agent Sessions
+### Presentation Management
 
 | Command | Description |
 |---------|-------------|
-| `agent-start` | Start new session (zellij + process-compose + OpenCode) |
-| `agent-sessions` | List active sessions for this repository |
-| `agent-connect [id]` | Connect to an existing session by short ID |
+| `preso init` | Create slides.md in current directory |
+| `preso init -T <theme>` | Create with specific theme |
+| `preso init -n "Title"` | Create with custom title |
+| `preso serve` | Start development server on port 3030 |
+| `preso serve -p <port>` | Start on a specific port |
+| `preso build` | Build static site to `./dist` |
+| `preso pdf` | Export to PDF |
+| `preso pdf -o <file>` | Export with custom filename |
+| `preso present` | Open presenter mode with speaker notes |
 
-## Development Environment
+### Theme Management
 
 | Command | Description |
 |---------|-------------|
-| `devenv shell` | Enter the development environment |
-| `devenv up` | Start process-compose with TUI (foreground, for humans) |
-| `devenv up -d` | Start process-compose in daemon mode (unreliable, prefer `slides-serve`) |
-| `devenv processes down` | Stop all background processes |
-| `devenv info` | Show environment information |
+| `preso theme list` | List available themes |
+| `preso theme set <name>` | Apply a theme to current presentation |
+| `preso theme add <path>` | Add a custom theme |
 
-## Server Management
+### Configuration
 
-### For Agents (Background)
+| Command | Description |
+|---------|-------------|
+| `preso config show` | Show current configuration |
+| `preso config set <key> <value>` | Set a configuration value |
+
+Common settings:
+- `defaultTheme` - Theme for new presentations
+- `defaultPort` - Default server port
+
+### LLM/Agent Commands
+
+| Command | Description |
+|---------|-------------|
+| `preso llm` | Compact help (minimal tokens) |
+| `preso llm status` | JSON status of current directory |
+| `preso llm debug` | Troubleshooting information |
+| `preso llm schema` | Structured command schema for tool use |
+
+## Getting Help
+
+Each command has detailed help:
 
 ```bash
-slides-serve    # Start in background, waits until ready
-slides-stop     # Stop background server
+preso --help           # List all commands
+preso <command> -h     # Help for specific command
 ```
 
-Logs are written to `.devenv/slides.log`.
+## Common Workflows
 
-### For Humans (Interactive)
+### Start a New Presentation
 
 ```bash
-devenv up       # Start with TUI for interactive control
+mkdir my-talk && cd my-talk
+preso init
+preso serve
 ```
 
-## Environment Variables
+### Export for Sharing
 
-| Variable | Description |
-|----------|-------------|
-| `PRESO` | Override current presentation selection |
-| `OPENCODE_SESSION_NAME` | Current agent session name (set automatically) |
-| `OPENCODE_ACTIVE_PORT` | Configured process-compose port (use socket instead) |
+```bash
+cd my-talk
+preso build    # Static site in ./dist
+preso pdf      # PDF file
+```
+
+### Multiple Presentations
+
+Run presentations on different ports:
+
+```bash
+# Terminal 1
+cd ~/talks/talk-a
+preso serve -p 3030
+
+# Terminal 2
+cd ~/talks/talk-b
+preso serve -p 3031
+```
+
+---
+
+## Development Commands
+
+> **Note:** These commands are only available when developing the preso CLI itself. They require [devenv](https://devenv.sh) and are not needed for creating presentations.
+
+After running `devenv shell`:
+
+| Command | Description |
+|---------|-------------|
+| `preso-dev <cmd>` | Run CLI in development mode |
+| `preso-build` | Build binary for current platform |
+| `preso-build-all` | Build binaries for all platforms |
+| `preso-typecheck` | Type-check source code |
+
+### Devenv Scripts (Development Only)
+
+These scripts manage presentations within the preso repository for testing:
+
+| Command | Description |
+|---------|-------------|
+| `slides-list` | List presentations in `presentations/` |
+| `slides-select <name>` | Select a presentation for testing |
+| `slides-serve` | Start dev server in background |
+| `slides-stop` | Stop background server |
+| `devenv up` | Start process-compose with TUI |
+
+### Agent Session Scripts (Development Only)
+
+| Command | Description |
+|---------|-------------|
+| `agent-start` | Start zellij session with OpenCode |
+| `agent-sessions` | List active sessions |
+| `agent-connect [id]` | Connect to existing session |
