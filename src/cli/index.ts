@@ -1,20 +1,20 @@
 #!/usr/bin/env bun
 /**
  * PRESO CLI - Slidev presentation tool
- * 
+ *
  * PRESO Renders Engaging Slides On-demand
  */
 
-import { parseArgs } from "util";
-import { version } from "./version";
-import { initCommand } from "./commands/init";
-import { serveCommand } from "./commands/serve";
 import { buildCommand } from "./commands/build";
+import { configCommand } from "./commands/config";
+import { initCommand } from "./commands/init";
+import { llmCommand } from "./commands/llm";
 import { pdfCommand } from "./commands/pdf";
 import { presentCommand } from "./commands/present";
+import { serveCommand } from "./commands/serve";
 import { themeCommand } from "./commands/theme";
-import { configCommand } from "./commands/config";
-import { llmCommand } from "./commands/llm";
+import { ExitCode, error, exitWithError } from "./utils/output";
+import { version } from "./version";
 
 const HELP = `
 preso - Create and present Slidev presentations
@@ -58,20 +58,20 @@ DOCUMENTATION
 
 async function main() {
   const args = process.argv.slice(2);
-  
+
   if (args.length === 0 || args[0] === "-h" || args[0] === "--help") {
     console.log(HELP);
-    process.exit(0);
+    process.exit(ExitCode.SUCCESS);
   }
-  
+
   if (args[0] === "-v" || args[0] === "--version") {
     console.log(`preso ${version}`);
-    process.exit(0);
+    process.exit(ExitCode.SUCCESS);
   }
-  
+
   const command = args[0];
   const commandArgs = args.slice(1);
-  
+
   try {
     switch (command) {
       case "init":
@@ -99,18 +99,18 @@ async function main() {
         await llmCommand(commandArgs);
         break;
       default:
-        console.error(`Unknown command: ${command}`);
-        console.log("");
-        console.log("Run 'preso --help' for usage");
-        process.exit(1);
+        exitWithError(`Unknown command: ${command}`, {
+          code: ExitCode.INVALID_ARGUMENT,
+          hint: "Run 'preso --help' for usage",
+        });
     }
   } catch (err) {
     if (err instanceof Error) {
-      console.error(`Error: ${err.message}`);
+      error(err.message);
     } else {
-      console.error("An unexpected error occurred");
+      error("An unexpected error occurred");
     }
-    process.exit(1);
+    process.exit(ExitCode.GENERAL_ERROR);
   }
 }
 

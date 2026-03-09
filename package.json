@@ -12,9 +12,9 @@
     "build": "bun run scripts/build.ts",
     "build:all": "bun run scripts/build.ts --all",
     "typecheck": "tsc --noEmit",
-    "slidev": "slidev",
-    "slidev:build": "slidev build",
-    "slidev:export": "slidev export"
+    "lint": "biome check --write src/ scripts/",
+    "lint:check": "biome check src/ scripts/",
+    "format": "biome format --write src/ scripts/"
   },
   "dependencies": {
     "@slidev/cli": "^51.0.0",
@@ -22,6 +22,7 @@
     "@slidev/theme-seriph": "latest"
   },
   "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
     "bun-types": "latest",
     "playwright-chromium": "^1.40.0",
     "typescript": "^5.0.0"

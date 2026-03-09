@@ -1,14 +1,21 @@
 /**
  * Configuration utilities
- * 
+ *
  * Two config levels:
- * 1. Global config: ~/.config/preso/config.json (themes, templates, preferences)
+ * 1. Global config: ~/.config/preso/config.json (themes, preferences)
  * 2. Local presentation: slides.md in current directory
  */
 
-import { existsSync, mkdirSync } from "fs";
-import { join, basename } from "path";
-import { homedir } from "os";
+import { existsSync, mkdirSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
+
+import {
+  ExitCode,
+  exitInvalidPort,
+  exitNoSlides,
+  exitPortInUse,
+} from "./output";
 
 // ============================================================================
 // Global Config (~/.config/preso/)
@@ -18,21 +25,11 @@ export interface GlobalConfig {
   defaultTheme: string;
   defaultTemplate: string;
   defaultPort: number;
-  themes: string[];           // Favorite/installed themes
-  templates: Record<string, CustomTemplate>;
-  editor?: string;            // Preferred editor command
-}
-
-export interface CustomTemplate {
-  name: string;
-  description: string;
-  theme: string;
-  content: string;
+  themes: string[]; // Favorite/installed themes
 }
 
 const CONFIG_DIR = join(homedir(), ".config", "preso");
 const CONFIG_FILE = join(CONFIG_DIR, "config.json");
-const TEMPLATES_DIR = join(CONFIG_DIR, "templates");
 const THEMES_DIR = join(CONFIG_DIR, "themes");
 
 const DEFAULT_GLOBAL_CONFIG: GlobalConfig = {
@@ -40,7 +37,6 @@ const DEFAULT_GLOBAL_CONFIG: GlobalConfig = {
   defaultTemplate: "basic",
   defaultPort: 3030,
   themes: ["default", "seriph", "apple-basic", "dracula"],
-  templates: {},
 };
 
 /**
@@ -49,9 +45,6 @@ const DEFAULT_GLOBAL_CONFIG: GlobalConfig = {
 export function ensureConfigDir(): void {
   if (!existsSync(CONFIG_DIR)) {
     mkdirSync(CONFIG_DIR, { recursive: true });
-  }
-  if (!existsSync(TEMPLATES_DIR)) {
-    mkdirSync(TEMPLATES_DIR, { recursive: true });
   }
   if (!existsSync(THEMES_DIR)) {
     mkdirSync(THEMES_DIR, { recursive: true });
@@ -63,12 +56,12 @@ export function ensureConfigDir(): void {
  */
 export async function getGlobalConfig(): Promise<GlobalConfig> {
   ensureConfigDir();
-  
+
   if (!existsSync(CONFIG_FILE)) {
     await saveGlobalConfig(DEFAULT_GLOBAL_CONFIG);
     return DEFAULT_GLOBAL_CONFIG;
   }
-  
+
   try {
     const file = Bun.file(CONFIG_FILE);
     const data = await file.json();
@@ -81,16 +74,20 @@ export async function getGlobalConfig(): Promise<GlobalConfig> {
 /**
  * Save global configuration
  */
-export async function saveGlobalConfig(config: Partial<GlobalConfig>): Promise<void> {
+export async function saveGlobalConfig(
+  config: Partial<GlobalConfig>,
+): Promise<void> {
   ensureConfigDir();
-  
+
   const existing = existsSync(CONFIG_FILE)
-    ? await Bun.file(CONFIG_FILE).json().catch(() => DEFAULT_GLOBAL_CONFIG)
+    ? await Bun.file(CONFIG_FILE)
+        .json()
+        .catch(() => DEFAULT_GLOBAL_CONFIG)
     : DEFAULT_GLOBAL_CONFIG;
-  
+
   await Bun.write(
     CONFIG_FILE,
-    JSON.stringify({ ...existing, ...config }, null, 2)
+    JSON.stringify({ ...existing, ...config }, null, 2),
   );
 }
 
@@ -101,7 +98,6 @@ export function getConfigPaths() {
   return {
     configDir: CONFIG_DIR,
     configFile: CONFIG_FILE,
-    templatesDir: TEMPLATES_DIR,
     themesDir: THEMES_DIR,
   };
 }
@@ -111,36 +107,23 @@ export function getConfigPaths() {
 // ============================================================================
 
 /**
- * Find slides.md in current directory or parent directories
+ * Find slides.md in current directory
  */
-export function findSlidesFile(startDir: string = process.cwd()): string | null {
-  // First check current directory
+export function findSlidesFile(
+  startDir: string = process.cwd(),
+): string | null {
   const localSlides = join(startDir, "slides.md");
   if (existsSync(localSlides)) {
     return localSlides;
   }
-  
+
   // Also check for presentation.md as alternative
   const altSlides = join(startDir, "presentation.md");
   if (existsSync(altSlides)) {
     return altSlides;
   }
-  
+
   return null;
-}
-
-/**
- * Check if current directory is a presentation
- */
-export function isPresentation(dir: string = process.cwd()): boolean {
-  return findSlidesFile(dir) !== null;
-}
-
-/**
- * Get presentation name from directory
- */
-export function getPresentationName(dir: string = process.cwd()): string {
-  return basename(dir);
 }
 
 /**
@@ -150,7 +133,9 @@ export async function isPortAvailable(port: number): Promise<boolean> {
   try {
     const server = Bun.serve({
       port,
-      fetch() { return new Response(""); },
+      fetch() {
+        return new Response("");
+      },
     });
     server.stop();
     return true;
@@ -160,21 +145,94 @@ export async function isPortAvailable(port: number): Promise<boolean> {
 }
 
 /**
- * Find next available port starting from given port
- */
-export async function findAvailablePort(startPort: number, maxAttempts: number = 10): Promise<number | null> {
-  for (let i = 0; i < maxAttempts; i++) {
-    const port = startPort + i;
-    if (await isPortAvailable(port)) {
-      return port;
-    }
-  }
-  return null;
-}
-
-/**
  * Get log file path for current presentation
  */
 export function getLogFile(dir: string = process.cwd()): string {
   return join(dir, ".preso.log");
+}
+
+// ============================================================================
+// Command Helpers
+// ============================================================================
+
+/**
+ * Require slides.md to exist, exit with helpful error if not found
+ */
+export function requireSlides(cwd: string = process.cwd()): string {
+  const slidesPath = findSlidesFile(cwd);
+  if (!slidesPath) {
+    exitNoSlides();
+  }
+  return slidesPath;
+}
+
+/**
+ * Validate and require an available port, exit with helpful error if invalid or in use
+ */
+export async function requireAvailablePort(
+  port: number,
+  portStr: string | undefined,
+  command: string,
+): Promise<number> {
+  if (Number.isNaN(port) || port < 1 || port > 65535) {
+    exitInvalidPort(portStr);
+  }
+
+  const available = await isPortAvailable(port);
+  if (!available) {
+    exitPortInUse(port, command);
+  }
+
+  return port;
+}
+
+/**
+ * Setup graceful shutdown handlers for a subprocess
+ */
+export function setupGracefulShutdown(proc: { kill(): void }): void {
+  const handler = () => {
+    proc.kill();
+    process.exit(ExitCode.SUCCESS);
+  };
+  process.on("SIGINT", handler);
+  process.on("SIGTERM", handler);
+}
+
+// ============================================================================
+// Slidev Process Management
+// ============================================================================
+
+export interface SlidevOptions {
+  slidesPath: string;
+  port: number;
+  open?: string | boolean; // true, false, or path like "/presenter"
+  remote?: boolean;
+}
+
+/**
+ * Start Slidev dev server with given options
+ */
+export async function startSlidev(options: SlidevOptions): Promise<void> {
+  const { slidesPath, port, open, remote } = options;
+  const cwd = process.cwd();
+
+  const slidevArgs = ["slidev", slidesPath, "--port", String(port)];
+
+  if (open === true) {
+    slidevArgs.push("--open");
+  } else if (typeof open === "string") {
+    slidevArgs.push("--open", open);
+  }
+
+  if (remote) {
+    slidevArgs.push("--remote");
+  }
+
+  const proc = Bun.spawn(["bunx", ...slidevArgs], {
+    cwd,
+    stdio: ["inherit", "inherit", "inherit"],
+  });
+
+  setupGracefulShutdown(proc);
+  await proc.exited;
 }

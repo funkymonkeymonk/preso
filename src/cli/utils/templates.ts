@@ -105,23 +105,12 @@ title: {{title}}
 };
 
 /**
- * Get a template by name
- */
-export function getTemplate(name: string): Template | undefined {
-  return templates[name];
-}
-
-/**
- * List available templates
- */
-export function listTemplates(): Template[] {
-  return Object.values(templates);
-}
-
-/**
  * Apply template variables
  */
-export function applyTemplateVariables(template: Template, vars: Record<string, string>): string {
+export function applyTemplateVariables(
+  template: Template,
+  vars: Record<string, string>,
+): string {
   let content = template.content;
   for (const [key, value] of Object.entries(vars)) {
     content = content.replace(new RegExp(`{{${key}}}`, "g"), value);
@@ -135,6 +124,6 @@ export function applyTemplateVariables(template: Template, vars: Record<string, 
 export function slugToTitle(slug: string): string {
   return slug
     .split(/[-_]/)
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" ");
 }

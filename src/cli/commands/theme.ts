@@ -2,12 +2,24 @@
  * theme command - Manage themes
  */
 
-import { existsSync, readFileSync, writeFileSync } from "fs";
-import { join, basename } from "path";
-import { parseArgs } from "util";
-import { success, error, info, header, colors, Spinner } from "../utils/output";
-import { findSlidesFile, getGlobalConfig, saveGlobalConfig, getConfigPaths } from "../utils/config";
-import { OFFICIAL_THEMES, type ThemeInfo } from "../utils/themes";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+
+import {
+  getConfigPaths,
+  getGlobalConfig,
+  requireSlides,
+  saveGlobalConfig,
+} from "../utils/config";
+import {
+  ExitCode,
+  colors,
+  error,
+  exitWithError,
+  header,
+  info,
+  success,
+} from "../utils/output";
+import { OFFICIAL_THEMES, isOfficialTheme } from "../utils/themes";
 
 const HELP = `
 Manage presentation themes.
@@ -58,9 +70,10 @@ export async function themeCommand(args: string[]): Promise<void> {
       await browseThemes();
       break;
     default:
-      error(`Unknown command: ${subcommand}`);
-      console.log(HELP);
-      process.exit(1);
+      exitWithError(`Unknown command: ${subcommand}`, {
+        code: ExitCode.INVALID_ARGUMENT,
+        hint: "Run 'preso theme --help' for usage",
+      });
   }
 }
 
@@ -88,7 +101,9 @@ async function listThemes(): Promise<void> {
       customThemes.push(dir.replace(/\/$/, ""));
     }
     if (customThemes.length > 0) {
-      console.log(`${colors.dim}Custom (~/.config/preso/themes/):${colors.reset}`);
+      console.log(
+        `${colors.dim}Custom (~/.config/preso/themes/):${colors.reset}`,
+      );
       for (const name of customThemes) {
         console.log(`    ${name}`);
       }
@@ -104,18 +119,13 @@ async function listThemes(): Promise<void> {
 async function setTheme(args: string[]): Promise<void> {
   const name = args[0];
   if (!name) {
-    error("Theme name required");
-    console.log("Usage: preso theme set <name>");
-    process.exit(1);
+    exitWithError("Theme name required", {
+      code: ExitCode.INVALID_ARGUMENT,
+      hint: "Usage: preso theme set <name>",
+    });
   }
 
-  const cwd = process.cwd();
-  const slidesPath = findSlidesFile(cwd);
-
-  if (!slidesPath) {
-    error("No slides.md found in current directory");
-    process.exit(1);
-  }
+  const slidesPath = requireSlides();
 
   // Update slides.md frontmatter
   let content = readFileSync(slidesPath, "utf-8");
@@ -132,7 +142,7 @@ async function setTheme(args: string[]): Promise<void> {
 
   success(`Theme set to: ${name}`);
 
-  if (!OFFICIAL_THEMES.includes(name as any)) {
+  if (!isOfficialTheme(name)) {
     info("Note: Non-official themes are installed automatically by Slidev");
   }
 }
@@ -140,9 +150,10 @@ async function setTheme(args: string[]): Promise<void> {
 async function addTheme(args: string[]): Promise<void> {
   const name = args[0];
   if (!name) {
-    error("Theme name required");
-    console.log("Usage: preso theme add <name>");
-    process.exit(1);
+    exitWithError("Theme name required", {
+      code: ExitCode.INVALID_ARGUMENT,
+      hint: "Usage: preso theme add <name>",
+    });
   }
 
   const config = await getGlobalConfig();
@@ -161,14 +172,6 @@ async function addTheme(args: string[]): Promise<void> {
 async function browseThemes(): Promise<void> {
   const url = "https://sli.dev/resources/theme-gallery";
   info(`Opening: ${url}`);
-
-  try {
-    const proc = Bun.spawn(["open", url], {
-      stdout: "pipe",
-      stderr: "pipe",
-    });
-    await proc.exited;
-  } catch {
-    console.log(`Visit: ${url}`);
-  }
+  const proc = Bun.spawn(["open", url], { stdout: "pipe", stderr: "pipe" });
+  await proc.exited.catch(() => console.log(`Visit: ${url}`));
 }

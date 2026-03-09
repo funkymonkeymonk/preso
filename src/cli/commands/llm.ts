@@ -1,6 +1,6 @@
 /**
  * llm command - LLM-optimized help and discovery
- * 
+ *
  * Designed for:
  * - Minimal tokens
  * - Progressive discovery (start minimal, drill down)
@@ -8,8 +8,12 @@
  * - Error recovery guidance
  */
 
-import { parseArgs } from "util";
-import { findSlidesFile, getLogFile, getConfigPaths, isPortAvailable } from "../utils/config";
+import {
+  findSlidesFile,
+  getConfigPaths,
+  getLogFile,
+  isPortAvailable,
+} from "../utils/config";
 import { version } from "../version";
 
 const COMPACT_HELP = `preso v${version} - Slidev presentation CLI
@@ -23,7 +27,7 @@ COMMANDS (run with -h for options):
   build    Static site -> ./dist
   pdf      Export PDF
   present  Speaker view + notes
-  theme    list|set|add|browse
+  theme    list|set|add
   config   show|set|path
 
 COMMON CHAINS:
@@ -72,7 +76,6 @@ async function showStatus(): Promise<void> {
   const port3030 = await isPortAvailable(3030);
   const paths = getConfigPaths();
 
-  // JSON output for easy parsing
   const status = {
     cwd,
     isPresentation: slidesPath !== null,
@@ -155,23 +158,22 @@ function showSchema(): void {
         opens: "/presenter view",
       },
       theme: {
-        subcommands: ["list", "set <name>", "add <name>", "browse"],
+        subcommands: ["list", "set <name>", "add <path>"],
         prereq: {
           set: "slides.md exists",
           list: "none",
           add: "none",
-          browse: "none",
         },
       },
       config: {
         subcommands: ["show", "set <key> <val>", "path"],
-        keys: ["defaultTheme", "defaultTemplate", "defaultPort", "editor"],
+        keys: ["defaultTheme", "defaultTemplate", "defaultPort"],
       },
     },
     errorRecovery: {
       "No slides.md found": "preso init",
       "Port .* in use": "preso serve -p <different-port>",
-      "playwright": "bunx playwright install chromium",
+      playwright: "bunx playwright install chromium",
     },
   };
 

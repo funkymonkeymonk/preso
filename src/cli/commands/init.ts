@@ -2,12 +2,25 @@
  * init command - Initialize a new presentation in current directory
  */
 
-import { existsSync, mkdirSync } from "fs";
-import { join, basename } from "path";
-import { parseArgs } from "util";
-import { success, error, info, header, Spinner } from "../utils/output";
-import { getGlobalConfig, findSlidesFile } from "../utils/config";
-import { templates, applyTemplateVariables, slugToTitle } from "../utils/templates";
+import { existsSync } from "node:fs";
+import { basename, join } from "node:path";
+import { parseArgs } from "node:util";
+
+import { findSlidesFile, getGlobalConfig } from "../utils/config";
+import {
+  ExitCode,
+  Spinner,
+  error,
+  exitWithError,
+  header,
+  info,
+  success,
+} from "../utils/output";
+import {
+  applyTemplateVariables,
+  slugToTitle,
+  templates,
+} from "../utils/templates";
 
 const HELP = `
 Create a new presentation in the current directory.
@@ -17,14 +30,15 @@ USAGE
 
 OPTIONS
   -t, --template <name>   Template: basic, seriph, minimal (default: from config)
-  -T, --theme <name>      Theme to use (default: from config)
+  --theme <name>          Theme to use (default: from config)
   -n, --name <title>      Presentation title (default: directory name)
   -h, --help              Show this help
 
 EXAMPLES
-  preso init                    # Initialize with defaults
-  preso init -t seriph          # Use seriph template
-  preso init -n "My Talk"       # Set custom title
+  preso init                      # Initialize with defaults
+  preso init -t seriph            # Use seriph template
+  preso init --theme dracula      # Use dracula theme
+  preso init -n "My Talk"         # Set custom title
 
 WHAT IT CREATES
   slides.md          Your presentation content
@@ -37,7 +51,7 @@ export async function initCommand(args: string[]): Promise<void> {
     args,
     options: {
       template: { type: "string", short: "t" },
-      theme: { type: "string", short: "T" },
+      theme: { type: "string" },
       name: { type: "string", short: "n" },
       help: { type: "boolean", short: "h" },
     },
@@ -50,25 +64,29 @@ export async function initCommand(args: string[]): Promise<void> {
   }
 
   const cwd = process.cwd();
-  
+
   // Check if already a presentation
   if (findSlidesFile(cwd)) {
-    error("This directory already contains a presentation (slides.md exists)");
-    process.exit(1);
+    exitWithError(
+      "This directory already contains a presentation (slides.md exists)",
+      { code: ExitCode.GENERAL_ERROR },
+    );
   }
 
   // Get config defaults
   const globalConfig = await getGlobalConfig();
-  const templateName = values.template || globalConfig.defaultTemplate || "basic";
+  const templateName =
+    values.template || globalConfig.defaultTemplate || "basic";
   const themeName = values.theme || globalConfig.defaultTheme || "default";
   const title = values.name || slugToTitle(basename(cwd));
 
   // Check if template exists
   const template = templates[templateName];
   if (!template) {
-    error(`Unknown template: ${templateName}`);
-    info(`Available: ${Object.keys(templates).join(", ")}`);
-    process.exit(1);
+    exitWithError(`Unknown template: ${templateName}`, {
+      code: ExitCode.INVALID_ARGUMENT,
+      hint: `Available: ${Object.keys(templates).join(", ")}`,
+    });
   }
 
   header(`Creating presentation: ${title}`);
@@ -78,14 +96,14 @@ export async function initCommand(args: string[]): Promise<void> {
   try {
     // Create slides.md from template, applying the requested theme
     let content = applyTemplateVariables(template, { title });
-    
+
     // Always set the theme to the requested theme (override template default)
     if (content.match(/^theme:/m)) {
       content = content.replace(/^theme:.*$/m, `theme: ${themeName}`);
     } else if (content.startsWith("---")) {
       content = content.replace(/^---\n/, `---\ntheme: ${themeName}\n`);
     }
-    
+
     await Bun.write(join(cwd, "slides.md"), content);
 
     // Create package.json
@@ -104,7 +122,10 @@ export async function initCommand(args: string[]): Promise<void> {
         [`@slidev/theme-${themeName}`]: "latest",
       },
     };
-    await Bun.write(join(cwd, "package.json"), JSON.stringify(packageJson, null, 2));
+    await Bun.write(
+      join(cwd, "package.json"),
+      JSON.stringify(packageJson, null, 2),
+    );
 
     // Create .gitignore
     const gitignore = `node_modules/
@@ -131,7 +152,9 @@ dist/
         installSpinner.fail("Install failed - run 'bun install' manually");
       }
     } catch {
-      installSpinner.fail("Install failed - run 'npm install' or 'bun install'");
+      installSpinner.fail(
+        "Install failed - run 'npm install' or 'bun install'",
+      );
     }
 
     console.log("");
@@ -144,6 +167,6 @@ dist/
   } catch (err) {
     spinner.fail("Failed");
     if (err instanceof Error) error(err.message);
-    process.exit(1);
+    process.exit(ExitCode.GENERAL_ERROR);
   }
 }

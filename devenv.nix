@@ -33,8 +33,11 @@
 
 let
   sessionDir = "/tmp/opencode-sessions";
+  defaultPort = "3030";
 
-  findPresoScript = ''
+  # Shared shell functions used across multiple scripts
+  commonFunctions = ''
+    # Find the path to a presentation by name
     find_preso_path() {
       local name="$1"
       if [[ -d "presentations/$name" ]]; then
@@ -45,9 +48,8 @@ let
         echo ""
       fi
     }
-  '';
 
-  listPresosScript = ''
+    # List all available presentations
     list_all_presos() {
       {
         if [[ -d "presentations" ]]; then
@@ -58,12 +60,8 @@ let
         fi
       } | sort -u
     }
-  '';
 
-  getPresoScript = ''
-    ${findPresoScript}
-    ${listPresosScript}
-    
+    # Get current presentation (from env, file, or prompt)
     get_preso() {
       local preso=""
       if [[ -n "''${PRESO:-}" ]]; then
@@ -91,10 +89,16 @@ let
       
       echo "$preso"
     }
-    
-    get_preso_path() {
-      local preso="$1"
-      find_preso_path "$preso"
+
+    # Get repository name from git remote or directory
+    get_repo_name() {
+      local remote_url
+      remote_url=$(git remote get-url origin 2>/dev/null || echo "")
+      if [[ -z "$remote_url" ]]; then
+        basename "$(pwd)"
+        return
+      fi
+      basename "$remote_url" .git
     }
   '';
 
@@ -110,6 +114,7 @@ in {
     pkgs.fzf
     pkgs.curl
     pkgs.bun
+    pkgs.biome
   ];
 
   # ============================================================================
@@ -118,6 +123,7 @@ in {
   env.OPENCODE_AUTORUN = "false";
   env.OPENCODE_BACKEND = "devenv";
   env.OPENCODE_PROCESS_COMPOSE_PORT = "8080";
+  env.PRESO_DEFAULT_PORT = defaultPort;
 
   # ============================================================================
   # LANGUAGES (Bun handles JavaScript/TypeScript)
@@ -142,12 +148,10 @@ in {
   # ============================================================================
   
   processes.slides.exec = ''
+    ${commonFunctions}
     PRESO=$(cat .current-preso 2>/dev/null || echo "example")
-    if [[ -d "presentations/$PRESO" ]]; then
-      PRESO_PATH="presentations/$PRESO"
-    elif [[ -d "local/presentations/$PRESO" ]]; then
-      PRESO_PATH="local/presentations/$PRESO"
-    else
+    PRESO_PATH=$(find_preso_path "$PRESO")
+    if [[ -z "$PRESO_PATH" ]]; then
       echo "ERROR: Presentation '$PRESO' not found"
       exit 1
     fi
@@ -186,13 +190,27 @@ in {
     description = "Type-check the CLI source code";
   };
 
+  scripts.preso-lint = {
+    exec = ''
+      biome check --write src/ scripts/
+    '';
+    description = "Lint and format code with Biome";
+  };
+
+  scripts.preso-lint-check = {
+    exec = ''
+      biome check src/ scripts/
+    '';
+    description = "Check code with Biome (no auto-fix)";
+  };
+
   # ============================================================================
   # SCRIPTS - Slide Management (for development/testing)
   # ============================================================================
 
   scripts.slides-list = {
     exec = ''
-      ${listPresosScript}
+      ${commonFunctions}
       echo "Available presentations:"
       echo ""
       current=""
@@ -228,8 +246,7 @@ in {
 
   scripts.slides-select = {
     exec = ''
-      ${findPresoScript}
-      ${listPresosScript}
+      ${commonFunctions}
       
       name="''${1:-}"
       if [[ -z "$name" ]]; then
@@ -255,21 +272,22 @@ in {
 
   scripts.slides-serve = {
     exec = ''
-      ${getPresoScript}
+      ${commonFunctions}
       preso=$(get_preso)
-      preso_path=$(get_preso_path "$preso")
+      preso_path=$(find_preso_path "$preso")
+      port="''${PRESO_DEFAULT_PORT:-${defaultPort}}"
       
       pkill -f "slidev.*slides.md" 2>/dev/null || true
       sleep 1
       
       echo "Starting dev server for: $preso (background)"
       mkdir -p .devenv
-      nohup bunx slidev "$preso_path/slides.md" > .devenv/slides.log 2>&1 &
+      nohup bunx slidev "$preso_path/slides.md" --port "$port" > .devenv/slides.log 2>&1 &
       
       echo "Waiting for server to start..."
       for i in {1..30}; do
-        if curl -s -o /dev/null http://localhost:3030; then
-          echo "Server ready at http://localhost:3030"
+        if curl -s -o /dev/null "http://localhost:$port"; then
+          echo "Server ready at http://localhost:$port"
           exit 0
         fi
         sleep 1
@@ -294,8 +312,7 @@ in {
 
   scripts.slides-validate = {
     exec = ''
-      ${findPresoScript}
-      ${listPresosScript}
+      ${commonFunctions}
       
       if [[ ! -f .current-preso ]]; then
         echo "ERROR: No presentation selected"
@@ -327,16 +344,7 @@ in {
   scripts.agent-start = {
     exec = ''
       set -euo pipefail
-
-      get_repo_name() {
-        local remote_url
-        remote_url=$(git remote get-url origin 2>/dev/null || echo "")
-        if [[ -z "$remote_url" ]]; then
-          basename "$(pwd)"
-          return
-        fi
-        basename "$remote_url" .git
-      }
+      ${commonFunctions}
 
       generate_short_id() {
         head -c 4 /dev/urandom | xxd -p | head -c 4
@@ -419,12 +427,7 @@ EOF
   scripts.agent-sessions = {
     exec = ''
       set -euo pipefail
-      get_repo_name() {
-        local remote_url
-        remote_url=$(git remote get-url origin 2>/dev/null || echo "")
-        if [[ -z "$remote_url" ]]; then basename "$(pwd)"; return; fi
-        basename "$remote_url" .git
-      }
+      ${commonFunctions}
       REPO_NAME=$(get_repo_name)
       ACTIVE_SESSIONS=$(zellij list-sessions 2>/dev/null | grep -E "^$REPO_NAME-" || echo "")
       if [[ -z "$ACTIVE_SESSIONS" ]]; then
@@ -440,12 +443,7 @@ EOF
   scripts.agent-connect = {
     exec = ''
       set -euo pipefail
-      get_repo_name() {
-        local remote_url
-        remote_url=$(git remote get-url origin 2>/dev/null || echo "")
-        if [[ -z "$remote_url" ]]; then basename "$(pwd)"; return; fi
-        basename "$remote_url" .git
-      }
+      ${commonFunctions}
       REPO_NAME=$(get_repo_name)
       TARGET="''${1:-}"
       ACTIVE_SESSIONS=$(zellij list-sessions 2>/dev/null | grep -E "^$REPO_NAME-" | grep -v "EXITED" | awk '{print $1}' || echo "")
@@ -486,6 +484,7 @@ EOF
     echo "  preso-build          Build binary for current platform"
     echo "  preso-build-all      Build binaries for all platforms"
     echo "  preso-typecheck      Type-check source code"
+    echo "  preso-lint           Lint and format code"
     echo ""
     echo "Slide Commands:"
     echo "  slides-list          List presentations"
