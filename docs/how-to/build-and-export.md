@@ -7,10 +7,11 @@ This guide shows you how to create distributable versions of your presentation.
 Generate a static HTML site for deployment:
 
 ```bash
-slides-build
+cd my-presentation
+preso build
 ```
 
-The output is saved to `presentations/<name>/dist/`.
+The output is saved to `./dist/`.
 
 You can deploy this folder to any static hosting service (Netlify, Vercel, GitHub Pages, etc.).
 
@@ -19,19 +20,29 @@ You can deploy this folder to any static hosting service (Netlify, Vercel, GitHu
 Create a PDF version for sharing:
 
 ```bash
-slides-pdf
+preso pdf
 ```
 
-The output is saved to `presentations/<name>/<name>.pdf`.
+The output is saved as `<directory-name>.pdf` in the current directory.
 
-**Note:** PDF export requires Playwright. If not installed, the command will prompt you to install it.
+To use a custom filename:
+
+```bash
+preso pdf -o my-slides.pdf
+```
+
+**Note:** PDF export requires Playwright. If not installed, the command will prompt you to install it:
+
+```bash
+bunx playwright install chromium
+```
 
 ## Start Presenter Mode
 
 For presenting with speaker notes and controls:
 
 ```bash
-slides-present
+preso present
 ```
 
 This opens:
@@ -47,13 +58,13 @@ This opens:
 
 ## Troubleshooting
 
-### Build fails with "presentation not found"
+### Build fails with "No slides.md found"
 
-Validate your selection first:
+Make sure you're in the presentation directory:
 
 ```bash
-slides-validate
-slides-build
+preso llm status   # Check if slides.md exists
+preso build
 ```
 
 ### PDF is missing slides
@@ -63,5 +74,22 @@ Ensure all slides render correctly in the browser first. PDF export captures wha
 ### Animations not in PDF
 
 PDF export captures the final state of each slide. Click-through animations become separate pages.
+
+### PDF export fails
+
+Install Playwright's Chromium:
+
+```bash
+bunx playwright install chromium
+```
+
+## Quick Reference
+
+| Task | Command |
+|------|---------|
+| Build static site | `preso build` |
+| Export to PDF | `preso pdf` |
+| Custom PDF name | `preso pdf -o name.pdf` |
+| Presenter mode | `preso present` |
 
 > For reference on all available commands, see [CLI Reference](../reference/cli-commands.md).

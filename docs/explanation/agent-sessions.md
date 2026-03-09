@@ -1,6 +1,8 @@
 # Agent Session Architecture
 
-This document explains how PRESO's agent sessions work and the design decisions behind them.
+> **Note:** This document describes the development environment for contributors working on the preso CLI itself. Regular users don't need agent sessions.
+
+This document explains how preso's agent sessions work for CLI development and the design decisions behind them.
 
 ## The Problem
 
@@ -18,7 +20,7 @@ But terminal-based agents struggle with:
 
 ## The Solution: Zellij + Process-Compose + OpenCode
 
-PRESO creates an integrated session using three tools:
+The preso development environment creates an integrated session using three tools:
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -43,16 +45,12 @@ Zellij provides:
 - **Pane management:** Predictable split layouts
 - **Named sessions:** Easy to find and reconnect to specific sessions
 
-The session name format `<repo>-<shortid>` (e.g., `preso-a3f2`) makes it easy to identify sessions per repository while allowing multiple sessions.
-
 ### Why Process-Compose in a Pane?
 
 With process-compose visible:
 - Humans can see server status at a glance
 - Log output is visible without additional commands
 - The TUI doesn't block OpenCode (they're in separate panes)
-
-For the agent, the TUI is informational. The agent uses the Unix socket API for actual control.
 
 ### Why the 30/70 Split?
 
@@ -65,19 +63,11 @@ For the agent, the TUI is informational. The agent uses the Unix socket API for 
 ### Starting
 
 `agent-start`:
-1. Validates current presentation (auto-fixes if invalid)
+1. Validates current presentation selection (for testing)
 2. Generates a unique short ID
 3. Creates zellij session with the layout
 4. Starts process-compose in left pane
 5. Launches OpenCode in right pane
-
-### Working
-
-During the session:
-- Edit code in OpenCode
-- See process status in left pane
-- Use OpenCode's tools to restart processes via API
-- Hot-reload works automatically for content changes
 
 ### Reconnecting
 
@@ -87,45 +77,14 @@ agent-sessions          # List sessions
 agent-connect a3f2      # Reconnect by short ID
 ```
 
-Zellij preserves the session state, including running processes and OpenCode context.
+## For Regular Users
 
-## Environment Variables
+If you're just creating presentations (not developing the CLI), none of this applies. Simply use the `preso` command directly:
 
-Inside a session:
+```bash
+preso serve
+```
 
-| Variable | Purpose |
-|----------|---------|
-| `OPENCODE_SESSION_NAME` | Current session name for logging/identification |
-| `OPENCODE_ACTIVE_PORT` | Configured port (use socket API instead) |
-
-These help tools identify which session they're in and avoid conflicts.
-
-## Design Trade-offs
-
-### Why not tmux?
-
-Zellij provides:
-- Better default keybindings
-- Easier configuration
-- Modern Rust implementation
-- Better pane management API
-
-tmux would work, but zellij is more ergonomic for this use case.
-
-### Why not run OpenCode without the TUI?
-
-The TUI provides valuable context:
-- Immediate visibility into server state
-- Log output without explicit queries
-- Visual confirmation that processes are running
-
-For fully automated scenarios, agents can use `devenv up -d` and skip the session entirely.
-
-### Why validate on startup?
-
-A session with an invalid presentation selection would immediately fail. Pre-flight validation:
-- Catches the most common issue (bad `.current-preso`)
-- Auto-fixes by defaulting to `example`
-- Provides a known-good starting state
+No zellij, process-compose, or devenv needed.
 
 > For step-by-step instructions, see [How to Start an Agent Session](../how-to/start-agent-session.md).

@@ -5,33 +5,29 @@ This guide shows you how to change the visual appearance of your presentation us
 ## List Available Themes
 
 ```bash
-slides-theme list
+preso theme list
 ```
 
 This shows:
 - Official Slidev themes (auto-installed when used)
-- Private themes in `local/themes/`
-- Shared themes in `shared/themes/`
+- Custom themes in `~/.config/preso/themes/`
 
-## Apply a Theme Interactively
+## Apply a Theme
 
 ```bash
-slides-theme
+preso theme set <theme-name>
 ```
 
-This opens an fzf picker to select a theme.
-
-## Apply a Specific Theme
-
+For example:
 ```bash
-slides-theme dracula
+preso theme set dracula
 ```
 
 This updates the `theme:` field in your presentation's frontmatter.
 
 ## Using Official Themes
 
-Official themes are referenced by name:
+Official themes are referenced by name in `slides.md`:
 
 ```yaml
 ---
@@ -43,31 +39,47 @@ Common options: `default`, `seriph`, `dracula`, `apple-basic`, `bricks`
 
 ## Using Custom Themes
 
-Custom themes use relative paths from your `slides.md`:
+### Add a Custom Theme
+
+```bash
+preso theme add /path/to/my-theme
+```
+
+This copies the theme to `~/.config/preso/themes/`.
+
+### Apply a Custom Theme
+
+```bash
+preso theme set my-theme
+```
+
+Or edit `slides.md` directly:
 
 ```yaml
 ---
-theme: ../../local/themes/my-theme
+theme: ./path/to/my-theme
 ---
 ```
 
-The path must be relative to where `slides.md` is located.
+## Theme Storage Location
 
-## Theme Storage Locations
+| Location | Purpose |
+|----------|---------|
+| `~/.config/preso/themes/` | User's custom themes |
 
-| Location | Purpose | Git Status |
-|----------|---------|------------|
-| `local/themes/` | Private/proprietary themes | Gitignored |
-| `shared/themes/` | Shared themes for the repo | Committed |
+## Set a Default Theme
+
+Set the theme used by `preso init`:
+
+```bash
+preso config set defaultTheme dracula
+```
 
 ## After Changing Themes
 
-The development server hot-reloads most changes, but theme changes may require a restart:
+The development server hot-reloads most changes. If the theme doesn't update:
 
-```bash
-# If using process-compose
-SOCKET=$(find /var/folders -name "pc.sock" -path "*/devenv-*/pc.sock" 2>/dev/null | head -1)
-curl -s --unix-socket "$SOCKET" -X POST http://localhost/process/restart/slides
-```
+1. Stop the server (Ctrl+C)
+2. Restart: `preso serve`
 
 > For details on creating custom themes, see [Theme Structure Reference](../reference/theme-structure.md).

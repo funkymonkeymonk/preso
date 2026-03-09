@@ -1,67 +1,76 @@
 # Project Structure Reference
 
-Reference for PRESO repository file organization.
+Reference for preso presentation and configuration file organization.
 
-## Directory Layout
+## Presentation Structure
 
-```
-preso/
-├── presentations/           # All presentations
-│   ├── example/
-│   │   └── slides.md       # Presentation content
-│   └── my-talk/
-│       ├── slides.md       # Presentation content
-│       └── dist/           # Built output (after slides-build)
-├── local/                  # Local/private files (gitignored)
-│   └── themes/             # Private themes
-│       └── my-theme/
-├── shared/                 # Shared repository resources
-│   └── themes/             # Shared themes (committed)
-├── docs/                   # Documentation
-│   ├── tutorials/          # Learning-oriented guides
-│   ├── how-to/             # Task-oriented guides
-│   ├── reference/          # Technical reference
-│   ├── explanation/        # Conceptual explanations
-│   └── plans/              # Design documents
-├── devenv.nix              # Scripts, processes, environment
-├── .current-preso          # Currently selected presentation
-├── AGENTS.md               # Agent instructions
-└── README.md               # Project overview
-```
-
-## Key Files
-
-| File | Purpose |
-|------|---------|
-| `devenv.nix` | All scripts, processes, and environment configuration |
-| `presentations/*/slides.md` | Presentation content (Slidev markdown) |
-| `.current-preso` | Name of currently selected presentation |
-| `AGENTS.md` | Instructions for AI agents working in this repo |
-| `README.md` | Human-readable project overview |
-
-## Presentation Files
-
-Each presentation is a directory under `presentations/`:
+Each presentation is a standalone directory:
 
 ```
-presentations/<name>/
-├── slides.md               # Main presentation file (required)
-├── dist/                   # Built static site (generated)
-└── <name>.pdf             # Exported PDF (generated)
+my-presentation/
+├── slides.md           # Presentation content (required)
+├── dist/               # Built static site (after preso build)
+├── my-presentation.pdf # Exported PDF (after preso pdf)
+└── .preso.log          # Server logs
 ```
 
-## Theme Files
+## Global Configuration
 
-Custom themes can be stored in two locations:
+User-level configuration and themes:
 
-| Location | Purpose | Git Status |
-|----------|---------|------------|
-| `local/themes/` | Private/proprietary themes | Gitignored |
-| `shared/themes/` | Shared repository themes | Committed |
-
-Theme structure:
 ```
-<theme-name>/
+~/.config/preso/
+├── config.json         # Global settings
+└── themes/             # Custom themes
+    └── my-theme/
+        ├── package.json
+        └── styles/
+```
+
+## Configuration File
+
+`~/.config/preso/config.json`:
+
+```json
+{
+  "defaultTheme": "seriph",
+  "defaultPort": 3030
+}
+```
+
+Manage with:
+```bash
+preso config show
+preso config set defaultTheme dracula
+```
+
+## Presentation File (slides.md)
+
+The `slides.md` file contains frontmatter and content:
+
+```markdown
+---
+theme: seriph
+title: My Presentation
+---
+
+# First Slide
+
+Content here
+
+---
+
+# Second Slide
+
+More content
+```
+
+## Theme Structure
+
+Custom themes follow Slidev's theme format:
+
+```
+my-theme/
 ├── package.json
 ├── styles/
 │   ├── index.ts
@@ -71,39 +80,24 @@ Theme structure:
     └── unocss.ts
 ```
 
-## Documentation Structure
+---
+
+## Development Repository Structure
+
+> **Note:** This section is only relevant for contributors developing the preso CLI itself.
 
 ```
-docs/
-├── tutorials/              # Learning by doing
-│   └── getting-started.md
-├── how-to/                 # Goal-oriented guides
-│   ├── switch-presentations.md
-│   ├── apply-themes.md
-│   ├── build-and-export.md
-│   ├── troubleshoot-server.md
-│   ├── start-agent-session.md
-│   └── create-custom-theme.md
-├── reference/              # Technical facts
-│   ├── cli-commands.md
-│   ├── slidev-syntax.md
-│   ├── theme-structure.md
-│   ├── process-compose-api.md
-│   └── project-structure.md
-├── explanation/            # Understanding
-│   ├── presentation-selection.md
-│   ├── process-compose-integration.md
-│   └── agent-sessions.md
-└── plans/                  # Design documents
-    └── *.md
+preso/                      # CLI source repository
+├── src/cli/                # CLI source code
+│   ├── index.ts            # Entry point
+│   ├── commands/           # Command implementations
+│   └── utils/              # Shared utilities
+├── presentations/          # Test presentations
+│   └── example/
+│       └── slides.md
+├── docs/                   # Documentation
+├── devenv.nix              # Development environment
+├── .current-preso          # Current test presentation
+├── AGENTS.md               # Agent instructions
+└── README.md               # Project overview
 ```
-
-## Generated Files
-
-These files are created by commands:
-
-| File/Directory | Generated By |
-|----------------|--------------|
-| `presentations/<name>/dist/` | `slides-build` |
-| `presentations/<name>/<name>.pdf` | `slides-pdf` |
-| `.current-preso` | `slides-select` or `slides-new` |

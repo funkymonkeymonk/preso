@@ -1,24 +1,26 @@
 # Process-Compose Integration
 
-This document explains how PRESO uses process-compose and the `slides-serve` script to manage the development server.
+> **Note:** This document describes the development environment for contributors working on the preso CLI itself. Regular users don't need process-compose - just use `preso serve` directly.
+
+This document explains how the preso development environment uses process-compose to manage background services during CLI development.
 
 ## The Problem
 
-Running a presentation development server involves:
-- Starting Slidev with the correct presentation file
-- Keeping the server running while you edit
-- Restarting when configuration changes
-- Managing logs and status
+When developing the preso CLI, you need to:
+- Run test presentations to verify changes
+- Keep the server running while editing CLI code
+- Restart when configuration changes
+- Manage logs and status
 
 Manually managing this is tedious and error-prone.
 
-## The Solution: Multiple Server Modes
+## The Solution: Process-Compose in devenv
 
-PRESO provides two ways to run the development server:
+The preso development environment provides two ways to run test servers:
 
 ### 1. Interactive Mode (for humans): `devenv up`
 
-Uses [process-compose](https://github.com/F1bonacc1/process-compose) via [devenv](https://devenv.sh) for interactive development:
+Uses [process-compose](https://github.com/F1bonacc1/process-compose) via [devenv](https://devenv.sh):
 
 - Shows a TUI with process status
 - Interactive controls (restart, view logs)
@@ -42,78 +44,19 @@ The devenv 2.0 native process manager has issues with daemon mode (`devenv up -d
 
 The `slides-serve` script provides a simpler, more reliable alternative for background operation.
 
-## How slides-serve Works
-
-```bash
-slides-serve
-```
-
-1. Reads the current presentation from `.current-preso`
-2. Kills any existing slidev processes
-3. Starts slidev with `nohup` in the background
-4. Waits for port 3030 to respond (up to 30 seconds)
-5. Reports success or failure
-
-To stop:
-
-```bash
-slides-stop
-```
-
-Logs are written to `.devenv/slides.log`.
-
-## How the slides Process Works (devenv up)
-
-The `slides` process in `devenv.nix`:
-
-1. Reads the presentation name from `.current-preso` (or `$PRESO` env var)
-2. Constructs the path: `presentations/$PRESO/slides.md`
-3. Runs: `npm run dev -- presentations/$PRESO/slides.md`
-4. Slidev starts on port 3030
-
-### Failure Modes
-
-If `.current-preso` references a non-existent presentation:
-- The process starts (status shows "Running")
-- But Slidev can't find the slides file
-- Port 3030 never binds
-- No obvious error unless you check logs
-
-This is why validation is important.
-
 ## When to Use Each Mode
 
 | Mode | Command | Best For |
 |------|---------|----------|
-| Interactive | `devenv up` | Humans developing presentations |
+| Interactive | `devenv up` | Humans developing the CLI |
 | Background | `slides-serve` | AI agents, automation, scripts |
 
-## Design Decisions
+## For Regular Users
 
-### Why not just use devenv up -d?
+If you're just creating presentations (not developing the CLI), none of this applies. Simply use:
 
-The devenv 2.0 daemon mode has reliability issues:
-- Native process manager may exit prematurely
-- Process-compose TUI errors in headless environments
-- Complex socket API for simple start/stop operations
+```bash
+preso serve
+```
 
-The `slides-serve` script provides a more predictable experience.
-
-### Why process-compose for interactive mode?
-
-Process-compose provides:
-- Great TUI for humans
-- Interactive controls (restart, logs)
-- Process health monitoring
-- Declarative configuration in Nix
-
-### Why nohup for background mode?
-
-Simple and reliable:
-- Works in any shell environment
-- No dependencies beyond bash
-- Predictable behavior
-- Easy to debug
-
-> For step-by-step troubleshooting, see [How to Troubleshoot the Development Server](../how-to/troubleshoot-server.md).
-> For CLI reference, see [CLI Commands Reference](../reference/cli-commands.md).
+This runs the server directly without process-compose.

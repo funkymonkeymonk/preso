@@ -111,7 +111,9 @@ src/cli/
     └── themes.ts      # Theme registry
 ```
 
-## Building
+## Building (Contributors Only)
+
+For contributors developing the preso CLI itself using [devenv](https://devenv.sh):
 
 ```bash
 devenv shell
