@@ -4,7 +4,6 @@
  * Creates standalone executables for multiple platforms
  */
 
-// Required to enable top-level await
 export {};
 
 type BunTarget =
@@ -55,72 +54,34 @@ console.log(`Building preso v${version}...`);
 console.log("");
 
 for (const { target, outfile } of selectedTargets) {
-  console.log(`Building for ${target}...`);
+  console.log(`Compiling for ${target}...`);
 
-  try {
-    const result = await Bun.build({
-      entrypoints: ["./src/cli/index.ts"],
-      outdir: ".",
-      naming: {
-        entry: outfile,
-      },
-      target,
-      minify: true,
-      sourcemap: "linked",
-      define: {
-        BUILD_VERSION: JSON.stringify(version),
-      },
-    });
+  const proc = Bun.spawn(
+    [
+      "bun",
+      "build",
+      "--compile",
+      `--target=${target}`,
+      "--minify",
+      `--define=BUILD_VERSION="${version}"`,
+      "./src/cli/index.ts",
+      "--outfile",
+      outfile,
+    ],
+    {
+      stdout: "pipe",
+      stderr: "pipe",
+    },
+  );
 
-    if (result.success) {
-      console.log(`  ✓ ${outfile}`);
-    } else {
-      console.error(`  ✗ Build failed for ${target}`);
-      for (const log of result.logs) {
-        console.error(`    ${log}`);
-      }
-    }
-  } catch (error) {
-    console.error(`  ✗ Build failed for ${target}: ${error}`);
+  const exitCode = await proc.exited;
+  if (exitCode === 0) {
+    console.log(`  ✓ ${outfile}`);
+  } else {
+    const stderr = await new Response(proc.stderr).text();
+    console.error(`  ✗ Compile failed: ${stderr}`);
   }
 }
 
 console.log("");
 console.log("Build complete!");
-
-// Also create compile versions (single executable)
-if (selectedTargets.length === 1 || allPlatforms) {
-  console.log("");
-  console.log("Creating standalone executables...");
-
-  for (const { target, outfile } of selectedTargets) {
-    const compiledOutfile = outfile.replace("dist/", "dist/bin/");
-    console.log(`Compiling for ${target}...`);
-
-    const proc = Bun.spawn(
-      [
-        "bun",
-        "build",
-        "--compile",
-        `--target=${target}`,
-        "--minify",
-        `--define=BUILD_VERSION="${version}"`,
-        "./src/cli/index.ts",
-        "--outfile",
-        compiledOutfile,
-      ],
-      {
-        stdout: "pipe",
-        stderr: "pipe",
-      },
-    );
-
-    const exitCode = await proc.exited;
-    if (exitCode === 0) {
-      console.log(`  ✓ ${compiledOutfile}`);
-    } else {
-      const stderr = await new Response(proc.stderr).text();
-      console.error(`  ✗ Compile failed: ${stderr}`);
-    }
-  }
-}

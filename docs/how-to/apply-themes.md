@@ -10,7 +10,7 @@ preso theme list
 
 This shows:
 - Official Slidev themes (auto-installed when used)
-- Custom themes in `~/.config/preso/themes/`
+- Custom themes in `~/.config/preso/themes/` (this is where `preso theme list` looks; themes can be stored anywhere and referenced by path)
 
 ## Apply a Theme
 
@@ -27,49 +27,47 @@ This updates the `theme:` field in your presentation's frontmatter.
 
 ## Using Official Themes
 
-Official themes are referenced by name in `slides.md`:
+Official themes are referenced by name. Common options:
 
-```yaml
----
-theme: seriph
----
-```
+`default`, `seriph`, `apple-basic`, `bricks`, `dracula`, `geist`, `purplin`, `shibainu`, `unicorn`
 
-Common options: `default`, `seriph`, `dracula`, `apple-basic`, `bricks`
+Slidev automatically downloads and installs official themes when you use them.
 
 ## Using Custom Themes
 
-### Add a Custom Theme
+You can use themes from anywhere by specifying a path in your `slides.md` frontmatter.
 
-```bash
-preso theme add /path/to/my-theme
-```
-
-This copies the theme to `~/.config/preso/themes/`.
-
-### Apply a Custom Theme
-
-```bash
-preso theme set my-theme
-```
-
-Or edit `slides.md` directly:
+### Local Path (Relative)
 
 ```yaml
 ---
-theme: ./path/to/my-theme
+theme: ./my-theme
 ---
 ```
 
-## Theme Storage Location
+### Home Directory Path
 
-| Location | Purpose |
-|----------|---------|
-| `~/.config/preso/themes/` | User's custom themes |
+```yaml
+---
+theme: ~/themes/my-company-theme
+---
+```
+
+### npm Package
+
+Slidev automatically installs themes from npm when referenced by name:
+
+```yaml
+---
+theme: my-custom-theme
+---
+```
+
+This installs `slidev-theme-my-custom-theme` or `@org/slidev-theme-my-custom-theme`.
 
 ## Set a Default Theme
 
-Set the theme used by `preso init`:
+Set the theme used by `preso init` for new presentations:
 
 ```bash
 preso config set defaultTheme dracula
@@ -82,4 +80,5 @@ The development server hot-reloads most changes. If the theme doesn't update:
 1. Stop the server (Ctrl+C)
 2. Restart: `preso serve`
 
-> For details on creating custom themes, see [Theme Structure Reference](../reference/theme-structure.md).
+> For creating custom themes, see [How to Create a Custom Theme](create-custom-theme.md).
+> For theme file structure details, see [Theme Structure Reference](../reference/theme-structure.md).

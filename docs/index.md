@@ -12,16 +12,11 @@ Step-by-step lessons that teach you PRESO by doing.
 
 Practical guides for accomplishing specific tasks.
 
+- [Install preso](how-to/install.md) - Download and install the CLI
 - [Apply Themes](how-to/apply-themes.md) - Change the visual appearance
 - [Build and Export](how-to/build-and-export.md) - Create distributable versions
-- [Troubleshoot Server](how-to/troubleshoot-server.md) - Fix common issues
+- [Troubleshoot Common Issues](how-to/troubleshoot-server.md) - Fix common problems
 - [Create Custom Theme](how-to/create-custom-theme.md) - Make your own theme
-
-### Development Guides
-
-These guides are for contributors developing the preso CLI:
-
-- [Start Agent Session](how-to/start-agent-session.md) - AI-assisted CLI development
 
 ## Reference (Information-oriented)
 
@@ -32,28 +27,22 @@ Technical descriptions and specifications.
 - [Theme Structure](reference/theme-structure.md) - Custom theme files
 - [Project Structure](reference/project-structure.md) - File organization
 
-### Development Reference
-
-- [Process-Compose API](reference/process-compose-api.md) - Unix socket API (dev only)
-
 ## Explanation (Understanding-oriented)
 
-Background and context for how things work.
+Background and context to help you understand the system.
 
-### Development Explanations
+- [Why PRESO?](explanation/architecture.md) - Design decisions and architecture
 
-These explain the preso CLI development environment:
+## Contributing
 
-- [Process-Compose Integration](explanation/process-compose-integration.md) - Dev environment architecture
-- [Agent Session Architecture](explanation/agent-sessions.md) - Session design decisions
+Documentation for contributors developing the preso CLI itself.
 
-## Setup
-
-- [AI Agent Installation](setup/ai-agent-install.md) - Quick setup for AI assistants
-
-## Design Documents
-
-Implementation plans and design decisions are in [plans/](plans/).
+- [Getting Started](contributing/getting-started.md) - Set up development environment
+- [Development Commands](contributing/development-commands.md) - Devenv scripts reference
+- [Start Agent Session](contributing/start-agent-session.md) - AI-assisted CLI development
+- [Agent Session Architecture](contributing/agent-sessions.md) - Session design decisions
+- [Process-Compose Integration](contributing/process-compose-integration.md) - Dev environment architecture
+- [Process-Compose API](contributing/process-compose-api.md) - Unix socket API reference
 
 ---
 
@@ -64,4 +53,5 @@ Implementation plans and design decisions are in [plans/](plans/).
 | Learn PRESO from scratch | [Getting Started Tutorial](tutorials/getting-started.md) |
 | Do a specific task | [How-To Guides](#how-to-guides-goal-oriented) |
 | Look up syntax or commands | [Reference](#reference-information-oriented) |
-| Develop the preso CLI | [Development sections](#development-guides) |
+| Understand why things work this way | [Explanation](#explanation-understanding-oriented) |
+| Develop the preso CLI | [Contributing](#contributing) |

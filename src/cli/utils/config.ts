@@ -25,7 +25,6 @@ export interface GlobalConfig {
   defaultTheme: string;
   defaultTemplate: string;
   defaultPort: number;
-  themes: string[]; // Favorite/installed themes
 }
 
 const CONFIG_DIR = join(homedir(), ".config", "preso");
@@ -36,7 +35,6 @@ const DEFAULT_GLOBAL_CONFIG: GlobalConfig = {
   defaultTheme: "default",
   defaultTemplate: "basic",
   defaultPort: 3030,
-  themes: ["default", "seriph", "apple-basic", "dracula"],
 };
 
 /**
@@ -117,12 +115,6 @@ export function findSlidesFile(
     return localSlides;
   }
 
-  // Also check for presentation.md as alternative
-  const altSlides = join(startDir, "presentation.md");
-  if (existsSync(altSlides)) {
-    return altSlides;
-  }
-
   return null;
 }
 
@@ -142,13 +134,6 @@ export async function isPortAvailable(port: number): Promise<boolean> {
   } catch {
     return false;
   }
-}
-
-/**
- * Get log file path for current presentation
- */
-export function getLogFile(dir: string = process.cwd()): string {
-  return join(dir, ".preso.log");
 }
 
 // ============================================================================
@@ -184,6 +169,16 @@ export async function requireAvailablePort(
   }
 
   return port;
+}
+
+/**
+ * Resolve port from argument or config default
+ */
+export function resolvePort(
+  portArg: string | undefined,
+  config: GlobalConfig,
+): number {
+  return portArg ? Number.parseInt(portArg, 10) : config.defaultPort;
 }
 
 /**
@@ -235,4 +230,41 @@ export async function startSlidev(options: SlidevOptions): Promise<void> {
 
   setupGracefulShutdown(proc);
   await proc.exited;
+}
+
+export interface SlidevBuildOptions {
+  slidesPath: string;
+  args: string[];
+  cwd?: string;
+}
+
+export interface SlidevBuildResult {
+  success: boolean;
+  stderr?: string;
+}
+
+/**
+ * Run a Slidev build command (build, export, etc.)
+ */
+export async function runSlidevBuild(
+  options: SlidevBuildOptions,
+): Promise<SlidevBuildResult> {
+  const { slidesPath, args, cwd = process.cwd() } = options;
+
+  const slidevArgs = ["slidev", ...args, slidesPath];
+
+  const proc = Bun.spawn(["bunx", ...slidevArgs], {
+    cwd,
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+
+  const exitCode = await proc.exited;
+
+  if (exitCode === 0) {
+    return { success: true };
+  }
+
+  const stderr = await new Response(proc.stderr).text();
+  return { success: false, stderr };
 }

@@ -2,44 +2,102 @@
 
 Reference for all `preso` commands.
 
-## User Commands
+## Presentation Commands
 
-These commands are available to all users with the `preso` binary installed.
+### preso init
 
-### Presentation Management
+Create a new presentation in the current directory.
 
-| Command | Description |
-|---------|-------------|
-| `preso init` | Create slides.md in current directory |
-| `preso init -T <theme>` | Create with specific theme |
-| `preso init -n "Title"` | Create with custom title |
-| `preso serve` | Start development server on port 3030 |
-| `preso serve -p <port>` | Start on a specific port |
-| `preso build` | Build static site to `./dist` |
-| `preso pdf` | Export to PDF |
-| `preso pdf -o <file>` | Export with custom filename |
-| `preso present` | Open presenter mode with speaker notes |
+| Option | Description |
+|--------|-------------|
+| `-t, --template <name>` | Template: basic, seriph, minimal (default: from config) |
+| `--theme <name>` | Theme to use (default: from config) |
+| `-n, --name <title>` | Presentation title (default: directory name) |
+| `-h, --help` | Show help |
 
-### Theme Management
+**Creates:** `slides.md`, `package.json`, `.gitignore`
 
-| Command | Description |
-|---------|-------------|
-| `preso theme list` | List available themes |
-| `preso theme set <name>` | Apply a theme to current presentation |
-| `preso theme add <path>` | Add a custom theme |
+### preso serve
 
-### Configuration
+Start the development server.
 
-| Command | Description |
-|---------|-------------|
-| `preso config show` | Show current configuration |
-| `preso config set <key> <value>` | Set a configuration value |
+| Option | Description |
+|--------|-------------|
+| `-p, --port <number>` | Port to use (default: 3030) |
+| `-o, --open` | Open browser automatically |
+| `-h, --help` | Show help |
 
-Common settings:
-- `defaultTheme` - Theme for new presentations
-- `defaultPort` - Default server port
+### preso build
 
-### LLM/Agent Commands
+Build a static site for deployment.
+
+| Option | Description |
+|--------|-------------|
+| `-o, --out <dir>` | Output directory (default: dist) |
+| `-b, --base <path>` | Base URL path (default: /) |
+| `-h, --help` | Show help |
+
+### preso pdf
+
+Export the presentation to PDF.
+
+| Option | Description |
+|--------|-------------|
+| `-o, --out <file>` | Output file (default: `<dirname>.pdf`) |
+| `--dark` | Use dark theme |
+| `--with-clicks` | Separate pages for click animations |
+| `--with-toc` | Include table of contents |
+| `-h, --help` | Show help |
+
+**Requires:** Playwright (`bunx playwright install chromium`)
+
+### preso present
+
+Start presenter mode with speaker notes.
+
+| Option | Description |
+|--------|-------------|
+| `-p, --port <number>` | Port to use (default: 3030) |
+| `--remote` | Enable remote control for audience |
+| `-h, --help` | Show help |
+
+## Theme Commands
+
+### preso theme list
+
+List available themes (official and custom in `~/.config/preso/themes/`).
+
+### preso theme set \<name\>
+
+Apply a theme to the current presentation. Updates the `theme:` field in `slides.md` frontmatter.
+
+### preso theme browse
+
+Open the Slidev theme gallery in your browser.
+
+## Configuration Commands
+
+### preso config show
+
+Display current configuration values and file location.
+
+### preso config set \<key\> \<value\>
+
+Set a configuration value.
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `defaultTheme` | string | Theme for new presentations |
+| `defaultTemplate` | string | Template for new presentations |
+| `defaultPort` | number | Port for dev server (1-65535) |
+
+### preso config path
+
+Print the configuration file location.
+
+## LLM/Agent Commands
+
+Commands optimized for AI coding assistants.
 
 | Command | Description |
 |---------|-------------|
@@ -50,76 +108,7 @@ Common settings:
 
 ## Getting Help
 
-Each command has detailed help:
-
 ```bash
 preso --help           # List all commands
 preso <command> -h     # Help for specific command
 ```
-
-## Common Workflows
-
-### Start a New Presentation
-
-```bash
-mkdir my-talk && cd my-talk
-preso init
-preso serve
-```
-
-### Export for Sharing
-
-```bash
-cd my-talk
-preso build    # Static site in ./dist
-preso pdf      # PDF file
-```
-
-### Multiple Presentations
-
-Run presentations on different ports:
-
-```bash
-# Terminal 1
-cd ~/talks/talk-a
-preso serve -p 3030
-
-# Terminal 2
-cd ~/talks/talk-b
-preso serve -p 3031
-```
-
----
-
-## Development Commands
-
-> **Note:** These commands are only available when developing the preso CLI itself. They require [devenv](https://devenv.sh) and are not needed for creating presentations.
-
-After running `devenv shell`:
-
-| Command | Description |
-|---------|-------------|
-| `preso-dev <cmd>` | Run CLI in development mode |
-| `preso-build` | Build binary for current platform |
-| `preso-build-all` | Build binaries for all platforms |
-| `preso-typecheck` | Type-check source code |
-
-### Devenv Scripts (Development Only)
-
-These scripts manage presentations within the preso repository for testing:
-
-| Command | Description |
-|---------|-------------|
-| `slides-list` | List presentations in `presentations/` |
-| `slides-select <name>` | Select a presentation for testing |
-| `slides-serve` | Start dev server in background |
-| `slides-stop` | Stop background server |
-| `devenv up` | Start process-compose with TUI |
-
-### Agent Session Scripts (Development Only)
-
-| Command | Description |
-|---------|-------------|
-| `agent-start` | Start zellij session with OpenCode |
-| `agent-sessions` | List active sessions |
-| `agent-connect [id]` | Connect to existing session |

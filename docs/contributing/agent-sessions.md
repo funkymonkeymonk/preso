@@ -87,4 +87,4 @@ preso serve
 
 No zellij, process-compose, or devenv needed.
 
-> For step-by-step instructions, see [How to Start an Agent Session](../how-to/start-agent-session.md).
+> For step-by-step instructions, see [How to Start an Agent Session](start-agent-session.md).

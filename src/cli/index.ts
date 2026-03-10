@@ -28,7 +28,7 @@ COMMANDS
   build             Build static site for deployment
   pdf               Export to PDF
   present           Start presenter mode with speaker notes
-  theme             Manage themes (list, set, add)
+  theme             Manage themes (list, set, browse)
   config            Manage global configuration
 
 OPTIONS
@@ -54,6 +54,7 @@ FOR AI/LLM AGENTS
 
 DOCUMENTATION
   https://sli.dev        # Slidev documentation
+  docs/index.md          # PRESO documentation
 `;
 
 async function main() {

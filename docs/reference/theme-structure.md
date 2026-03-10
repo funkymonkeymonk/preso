@@ -18,20 +18,19 @@ Reference for custom Slidev theme structure.
 
 ## Theme Location
 
-Custom themes are stored at `~/.config/preso/themes/`:
+Custom themes can be stored anywhere on your filesystem. Reference them by path in your presentation's frontmatter:
 
-```
-~/.config/preso/
-├── config.json
-└── themes/
-    └── my-theme/
-        ├── package.json
-        └── styles/
+```yaml
+---
+theme: ~/my-themes/my-theme
+---
 ```
 
-Add themes with:
-```bash
-preso theme add /path/to/my-theme
+Or use a relative path:
+```yaml
+---
+theme: ./themes/my-theme
+---
 ```
 
 ## package.json
@@ -140,19 +139,21 @@ theme: seriph
 ---
 ```
 
+Official themes are auto-installed by Slidev when referenced.
+
 ### Custom Themes (by path)
 
-After adding with `preso theme add`:
+Reference your theme directly by path:
 ```yaml
 ---
-theme: my-theme
+theme: ~/my-themes/my-theme
 ---
 ```
 
-Or reference directly by path:
+Or use a relative path from your presentation:
 ```yaml
 ---
-theme: ~/.config/preso/themes/my-theme
+theme: ../themes/my-theme
 ---
 ```
 

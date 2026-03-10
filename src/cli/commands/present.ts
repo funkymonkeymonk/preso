@@ -9,6 +9,7 @@ import {
   getGlobalConfig,
   requireAvailablePort,
   requireSlides,
+  resolvePort,
   startSlidev,
 } from "../utils/config";
 import { info } from "../utils/output";
@@ -53,9 +54,7 @@ export async function presentCommand(args: string[]): Promise<void> {
   const slidesPath = requireSlides(cwd);
 
   const globalConfig = await getGlobalConfig();
-  const port = values.port
-    ? Number.parseInt(values.port, 10)
-    : globalConfig.defaultPort;
+  const port = resolvePort(values.port, globalConfig);
   await requireAvailablePort(port, values.port, "present");
 
   const name = basename(cwd);

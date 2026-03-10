@@ -5,14 +5,8 @@
 import { basename } from "node:path";
 import { parseArgs } from "node:util";
 
-import { requireSlides } from "../utils/config";
-import {
-  ExitCode,
-  Spinner,
-  error,
-  exitMissingDependency,
-  info,
-} from "../utils/output";
+import { requireSlides, runSlidevBuild } from "../utils/config";
+import { ExitCode, Spinner, exitMissingDependency } from "../utils/output";
 
 const HELP = `
 Export the presentation to PDF.
@@ -63,36 +57,30 @@ export async function pdfCommand(args: string[]): Promise<void> {
 
   const spinner = new Spinner(`Exporting: ${name}`).start();
 
-  const slidevArgs = ["slidev", "export", slidesPath, "--output", outputPath];
+  const exportArgs = ["export", "--output", outputPath];
+  if (values.dark) exportArgs.push("--dark");
+  if (values["with-clicks"]) exportArgs.push("--with-clicks");
+  if (values["with-toc"]) exportArgs.push("--with-toc");
 
-  if (values.dark) slidevArgs.push("--dark");
-  if (values["with-clicks"]) slidevArgs.push("--with-clicks");
-  if (values["with-toc"]) slidevArgs.push("--with-toc");
+  const result = await runSlidevBuild({
+    slidesPath,
+    args: exportArgs,
+    cwd,
+  });
 
-  try {
-    const proc = Bun.spawn(["bunx", ...slidevArgs], {
-      cwd,
-      stdout: "pipe",
-      stderr: "pipe",
-    });
-
-    const exitCode = await proc.exited;
-
-    if (exitCode === 0) {
-      spinner.succeed(`Exported: ${outputPath}`);
-    } else {
-      spinner.fail("Export failed");
-      const stderr = await new Response(proc.stderr).text();
-      if (stderr) console.error(stderr);
-
-      if (stderr.includes("playwright") || stderr.includes("chromium")) {
+  if (result.success) {
+    spinner.succeed(`Exported: ${outputPath}`);
+  } else {
+    spinner.fail("Export failed");
+    if (result.stderr) {
+      console.error(result.stderr);
+      if (
+        result.stderr.includes("playwright") ||
+        result.stderr.includes("chromium")
+      ) {
         exitMissingDependency("Playwright", "bunx playwright install chromium");
       }
-      process.exit(ExitCode.EXPORT_FAILED);
     }
-  } catch (err) {
-    spinner.fail("Export failed");
-    if (err instanceof Error) error(err.message);
     process.exit(ExitCode.EXPORT_FAILED);
   }
 }

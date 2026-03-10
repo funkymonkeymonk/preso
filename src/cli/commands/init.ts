@@ -2,7 +2,6 @@
  * init command - Initialize a new presentation in current directory
  */
 
-import { existsSync } from "node:fs";
 import { basename, join } from "node:path";
 import { parseArgs } from "node:util";
 
@@ -18,6 +17,7 @@ import {
 } from "../utils/output";
 import {
   applyTemplateVariables,
+  setFrontmatterTheme,
   slugToTitle,
   templates,
 } from "../utils/templates";
@@ -98,15 +98,19 @@ export async function initCommand(args: string[]): Promise<void> {
     let content = applyTemplateVariables(template, { title });
 
     // Always set the theme to the requested theme (override template default)
-    if (content.match(/^theme:/m)) {
-      content = content.replace(/^theme:.*$/m, `theme: ${themeName}`);
-    } else if (content.startsWith("---")) {
-      content = content.replace(/^---\n/, `---\ntheme: ${themeName}\n`);
-    }
+    content = setFrontmatterTheme(content, themeName);
 
     await Bun.write(join(cwd, "slides.md"), content);
 
     // Create package.json
+    const dependencies: Record<string, string> = {
+      "@slidev/cli": "^51.0.0",
+      "@slidev/theme-default": "latest",
+    };
+    // Only add theme dependency if it's not the default theme
+    if (themeName !== "default") {
+      dependencies[`@slidev/theme-${themeName}`] = "latest";
+    }
     const packageJson = {
       name: basename(cwd),
       version: "0.0.1",
@@ -116,11 +120,7 @@ export async function initCommand(args: string[]): Promise<void> {
         build: "slidev build",
         export: "slidev export",
       },
-      dependencies: {
-        "@slidev/cli": "^51.0.0",
-        "@slidev/theme-default": "latest",
-        [`@slidev/theme-${themeName}`]: "latest",
-      },
+      dependencies,
     };
     await Bun.write(
       join(cwd, "package.json"),

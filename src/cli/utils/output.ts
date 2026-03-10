@@ -47,30 +47,12 @@ export function error(message: string): void {
   console.error(`${colors.red}Error: ${message}${colors.reset}`);
 }
 
-export function warn(message: string): void {
-  console.warn(`${colors.yellow}Warning: ${message}${colors.reset}`);
-}
-
 export function info(message: string): void {
   console.log(`${colors.blue}${message}${colors.reset}`);
 }
 
-export function dim(message: string): void {
-  console.log(`${colors.dim}${message}${colors.reset}`);
-}
-
 export function header(message: string): void {
   console.log(`\n${colors.bold}${message}${colors.reset}`);
-}
-
-/**
- * Format a list item with optional marker
- */
-export function listItem(item: string, isCurrent = false): string {
-  if (isCurrent) {
-    return `  ${colors.green}* ${item} (current)${colors.reset}`;
-  }
-  return `    ${item}`;
 }
 
 // ============================================================================
