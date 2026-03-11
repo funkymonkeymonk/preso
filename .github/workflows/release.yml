@@ -6,16 +6,77 @@ on:
       - 'v*'
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version to release (e.g., v0.1.0)'
+      bump:
+        description: 'Version bump type'
         required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 permissions:
   contents: write
 
 jobs:
+  prepare:
+    name: Prepare Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get current version
+        id: current
+        run: |
+          # Get latest tag or default to 0.0.0
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          CURRENT_VERSION="${LATEST_TAG#v}"
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $CURRENT_VERSION"
+
+      - name: Calculate new version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            # Tag push - use the tag directly
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+          else
+            # Manual dispatch - bump version
+            CURRENT="${{ steps.current.outputs.current }}"
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+            
+            case "${{ github.event.inputs.bump }}" in
+              major)
+                MAJOR=$((MAJOR + 1))
+                MINOR=0
+                PATCH=0
+                ;;
+              minor)
+                MINOR=$((MINOR + 1))
+                PATCH=0
+                ;;
+              patch)
+                PATCH=$((PATCH + 1))
+                ;;
+            esac
+            
+            VERSION="$MAJOR.$MINOR.$PATCH"
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $VERSION"
+
   build:
     name: Build ${{ matrix.target }}
+    needs: prepare
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -23,23 +84,18 @@ jobs:
           - target: darwin-arm64
             os: macos-14
             artifact: preso-darwin-arm64
-            display: macOS Apple Silicon
           - target: darwin-x64
             os: macos-13
             artifact: preso-darwin-x64
-            display: macOS Intel
           - target: linux-x64
             os: ubuntu-latest
             artifact: preso-linux-x64
-            display: Linux x64
           - target: linux-arm64
             os: ubuntu-24.04-arm
             artifact: preso-linux-arm64
-            display: Linux ARM64
           - target: windows-x64
             os: windows-latest
             artifact: preso-windows-x64.exe
-            display: Windows x64
 
     steps:
       - uses: actions/checkout@v4
@@ -56,23 +112,10 @@ jobs:
         run: bun test
 
       - name: Build binary
-        run: |
-          VERSION="${{ github.event.inputs.version || github.ref_name }}"
-          VERSION="${VERSION#v}"
-          bun build --compile --minify --target=bun-${{ matrix.target }} \
-            --define=BUILD_VERSION="\"$VERSION\"" \
-            ./src/cli/index.ts --outfile dist/${{ matrix.artifact }}
-
-      - name: Get binary size
-        id: size
         shell: bash
         run: |
-          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            SIZE=$(powershell -Command "(Get-Item dist/${{ matrix.artifact }}).Length / 1MB" | tr -d '\r')
-          else
-            SIZE=$(du -m dist/${{ matrix.artifact }} | cut -f1)
-          fi
-          echo "size=${SIZE}MB" >> $GITHUB_OUTPUT
+          VERSION="${{ needs.prepare.outputs.version }}"
+          bun build --compile --minify --target=bun-${{ matrix.target }} --define=BUILD_VERSION="\"$VERSION\"" ./src/cli/index.ts --outfile dist/${{ matrix.artifact }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -82,27 +125,29 @@ jobs:
 
   release:
     name: Create Release
-    needs: build
+    needs: [prepare, build]
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.version.outputs.version }}
+      version: ${{ needs.prepare.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Get version
-        id: version
+      - name: Create and push tag
+        if: github.event_name == 'workflow_dispatch'
         run: |
-          VERSION="${{ github.event.inputs.version || github.ref_name }}"
-          VERSION="${VERSION#v}"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ needs.prepare.outputs.tag }}" -m "Release ${{ needs.prepare.outputs.tag }}"
+          git push origin "${{ needs.prepare.outputs.tag }}"
 
       - name: Get previous tag
         id: prev_tag
         run: |
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          # Get the tag before the current one
+          CURRENT_TAG="${{ needs.prepare.outputs.tag }}"
+          PREV_TAG=$(git describe --tags --abbrev=0 "$CURRENT_TAG^" 2>/dev/null || echo "")
           echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
 
       - name: Download all artifacts
@@ -118,7 +163,6 @@ jobs:
           sha256sum * > checksums.txt
           cat checksums.txt
           
-          # Export individual checksums for release notes
           echo "darwin_arm64=$(sha256sum preso-darwin-arm64 | cut -d' ' -f1)" >> $GITHUB_OUTPUT
           echo "darwin_x64=$(sha256sum preso-darwin-x64 | cut -d' ' -f1)" >> $GITHUB_OUTPUT
           echo "linux_x64=$(sha256sum preso-linux-x64 | cut -d' ' -f1)" >> $GITHUB_OUTPUT
@@ -138,29 +182,23 @@ jobs:
       - name: Generate changelog
         id: changelog
         run: |
-          if [[ -n "${{ steps.prev_tag.outputs.prev_tag }}" ]]; then
+          PREV_TAG="${{ steps.prev_tag.outputs.prev_tag }}"
+          if [[ -n "$PREV_TAG" ]]; then
             echo "## What's Changed" > changelog.md
             echo "" >> changelog.md
-            git log ${{ steps.prev_tag.outputs.prev_tag }}..HEAD --pretty=format:"- %s" --no-merges >> changelog.md
+            git log "$PREV_TAG"..HEAD --pretty=format:"- %s" --no-merges >> changelog.md
           else
             echo "## Initial Release" > changelog.md
             echo "" >> changelog.md
             echo "First release of PRESO CLI." >> changelog.md
           fi
-          
-          # Escape for GitHub Actions
-          CHANGELOG=$(cat changelog.md)
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Generate release body
-        id: release_body
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          TAG="${{ steps.version.outputs.tag }}"
+          VERSION="${{ needs.prepare.outputs.version }}"
+          TAG="${{ needs.prepare.outputs.tag }}"
           
-          cat > release_body.md << 'HEREDOC'
+          cat > release_body.md << 'EOF'
           ## Installation
 
           ### Homebrew (Recommended)
@@ -182,7 +220,6 @@ jobs:
           ### Quick Install (macOS/Linux)
 
           ```bash
-          # Auto-detect platform
           curl -fsSL https://github.com/funkymonkeymonk/preso/releases/download/TAG_PLACEHOLDER/preso-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/' | sed 's/aarch64/arm64/') -o preso
           chmod +x preso
           sudo mv preso /usr/local/bin/
@@ -195,7 +232,7 @@ jobs:
           # Expected: VERSION_PLACEHOLDER
           ```
 
-          HEREDOC
+          EOF
           
           # Replace placeholders
           sed -i "s/TAG_PLACEHOLDER/$TAG/g" release_body.md
@@ -220,11 +257,11 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: PRESO ${{ steps.version.outputs.tag }}
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          name: PRESO ${{ needs.prepare.outputs.tag }}
           body_path: release_body.md
           draft: false
-          prerelease: ${{ contains(github.ref_name, '-') }}
+          prerelease: false
           files: |
             dist/preso-darwin-arm64
             dist/preso-darwin-x64
@@ -235,9 +272,8 @@ jobs:
 
   homebrew:
     name: Update Homebrew Formula
-    needs: release
+    needs: [prepare, release]
     runs-on: ubuntu-latest
-    if: ${{ !contains(github.ref_name, '-') }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -261,9 +297,8 @@ jobs:
 
       - name: Generate Homebrew formula
         run: |
-          VERSION="${{ needs.release.outputs.version }}"
+          VERSION="${{ needs.prepare.outputs.version }}"
           
-          # Create formula from template
           sed -e "s/VERSION_PLACEHOLDER/$VERSION/g" \
               -e "s/SHA256_DARWIN_ARM64_PLACEHOLDER/${{ steps.checksums.outputs.darwin_arm64 }}/g" \
               -e "s/SHA256_DARWIN_X64_PLACEHOLDER/${{ steps.checksums.outputs.darwin_x64 }}/g" \
@@ -278,5 +313,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Formula/preso.rb
-          git commit -m "Update Homebrew formula to ${{ needs.release.outputs.version }}" || echo "No changes to commit"
+          git commit -m "Update Homebrew formula to ${{ needs.prepare.outputs.version }}" || echo "No changes to commit"
           git push || echo "Nothing to push"
