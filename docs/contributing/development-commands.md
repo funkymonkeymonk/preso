@@ -2,24 +2,19 @@
 
 Reference for commands available when developing the preso CLI itself.
 
-> **Note:** These commands require [devenv](https://devenv.sh) and are only for contributors. Regular users should use `preso` commands directly.
-
-## Prerequisites
+## Option 1: Using devenv (Recommended)
 
 ```bash
 devenv shell
 ```
 
-## CLI Development Commands
+### Available Commands
 
 | Command | Description |
 |---------|-------------|
 | `preso-dev <cmd>` | Run CLI in development mode |
 | `preso-build` | Build binary for current platform |
 | `preso-build-all` | Build binaries for all platforms |
-| `preso-typecheck` | Type-check source code |
-| `preso-lint` | Lint and format code |
-| `preso-lint-check` | Check code without fixing |
 
 ### Examples
 
@@ -30,49 +25,69 @@ preso-build               # Build for current platform
 preso-build-all           # Build for all platforms
 ```
 
-## Slide Management Scripts
+## Option 2: Using Bun Directly
 
-These scripts manage test presentations within the preso repository:
+If you don't want to use devenv:
+
+```bash
+bun install
+```
+
+### Available Commands
 
 | Command | Description |
 |---------|-------------|
-| `slides-list` | List presentations in `presentations/` |
-| `slides-select <name>` | Select a presentation for testing |
-| `slides-serve` | Start dev server in background |
-| `slides-stop` | Stop background server |
-| `slides-validate` | Validate current selection |
+| `bun run src/cli/index.ts <cmd>` | Run CLI in development mode |
+| `bun test` | Run tests |
+| `bun test --coverage` | Run tests with coverage |
+| `bun run lint` | Lint and format code |
+| `bun run lint:check` | Check linting without fixing |
+| `bun run typecheck` | Type-check source code |
+| `bun run scripts/build.ts` | Build binary for current platform |
+| `bun run scripts/build.ts --all` | Build for all platforms |
 
 ### Examples
 
 ```bash
-slides-list                    # See available presentations
-slides-select example          # Select 'example' presentation
-slides-serve                   # Start background server
-slides-stop                    # Stop server
+# Run CLI in dev mode
+bun run src/cli/index.ts --help
+bun run src/cli/index.ts serve
+
+# Testing
+bun test
+bun test --coverage
+bun test src/cli/__tests__/commands/init.test.ts
+
+# Linting
+bun run lint        # Fix issues
+bun run lint:check  # Check only
+
+# Building
+bun run scripts/build.ts        # Current platform
+bun run scripts/build.ts --all  # All platforms
 ```
 
-## Agent Session Scripts
-
-| Command | Description |
-|---------|-------------|
-| `agent-start` | Start zellij session with OpenCode |
-| `agent-sessions` | List active sessions |
-| `agent-connect [id]` | Connect to existing session |
-
-### Examples
+## Testing Workflow
 
 ```bash
-agent-start                    # New session
-agent-sessions                 # List sessions
-agent-connect a3f2             # Connect by short ID
+# Create a test directory
+mkdir my-test && cd my-test
+
+# Initialize and test
+preso-dev init              # or: bun run ../src/cli/index.ts init
+preso-dev serve             # or: bun run ../src/cli/index.ts serve
+
+# Open http://localhost:3030
 ```
 
-## Process Management
+## Build Output
 
-| Command | Description |
-|---------|-------------|
-| `devenv up` | Start process-compose with TUI |
+Built binaries go to `dist/`:
 
-The TUI shows running processes and their logs. Use this for interactive development.
-
-> For background on these tools, see [Agent Session Architecture](agent-sessions.md) and [Process-Compose Integration](process-compose-integration.md).
+| File | Platform |
+|------|----------|
+| `preso-darwin-arm64` | macOS Apple Silicon |
+| `preso-darwin-x64` | macOS Intel |
+| `preso-linux-x64` | Linux x64 |
+| `preso-linux-arm64` | Linux ARM64 |
+| `preso-windows-x64.exe` | Windows x64 |

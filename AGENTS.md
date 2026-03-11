@@ -50,6 +50,7 @@ preso llm schema         # Structured command schema for tool use
 |------|----------|
 | Presentation | `./slides.md` (current directory) |
 | Global config | `~/.config/preso/config.json` |
+| Custom themes | `~/.config/preso/themes/` |
 
 ## Documentation
 

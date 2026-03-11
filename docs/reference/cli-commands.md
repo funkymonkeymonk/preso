@@ -17,6 +17,14 @@ Create a new presentation in the current directory.
 
 **Creates:** `slides.md`, `package.json`, `.gitignore`
 
+**Templates:**
+
+| Template | Description |
+|----------|-------------|
+| `basic` | Minimal starter with 3 slides |
+| `seriph` | Feature-rich with cover slide, layouts, and navigation hints |
+| `minimal` | Ultra-minimal with just title and one content slide |
+
 ### preso serve
 
 Start the development server.
@@ -53,13 +61,25 @@ Export the presentation to PDF.
 
 ### preso present
 
-Start presenter mode with speaker notes.
+Start presenter mode with speaker notes and timer.
 
 | Option | Description |
 |--------|-------------|
 | `-p, --port <number>` | Port to use (default: 3030) |
-| `--remote` | Enable remote control for audience |
+| `--remote` | Enable remote control for audience viewing |
 | `-h, --help` | Show help |
+
+**Presenter view features:**
+- Current and next slide preview
+- Speaker notes display
+- Presentation timer
+- Slide navigation controls
+
+**URLs when running:**
+- Presenter view: `http://localhost:<port>/presenter`
+- Audience view: `http://localhost:<port>`
+
+When using `--remote`, the audience can follow along at the main URL while you control from `/presenter`.
 
 ## Theme Commands
 

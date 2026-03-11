@@ -9,8 +9,8 @@ preso theme list
 ```
 
 This shows:
-- Official Slidev themes (auto-installed when used)
-- Custom themes in `~/.config/preso/themes/` (this is where `preso theme list` looks; themes can be stored anywhere and referenced by path)
+- **Official themes** - Auto-installed by Slidev when used (default, seriph, dracula, etc.)
+- **Custom themes** - Stored in `~/.config/preso/themes/`
 
 ## Apply a Theme
 
@@ -29,31 +29,51 @@ This updates the `theme:` field in your presentation's frontmatter.
 
 Official themes are referenced by name. Common options:
 
-`default`, `seriph`, `apple-basic`, `bricks`, `dracula`, `geist`, `purplin`, `shibainu`, `unicorn`
+| Theme | Description |
+|-------|-------------|
+| `default` | Clean, minimal default theme |
+| `seriph` | Elegant with nice typography |
+| `apple-basic` | Apple keynote inspired |
+| `bricks` | Bold geometric style |
+| `dracula` | Dark theme with purple accents |
+| `geist` | Modern, Vercel-inspired |
+| `purplin` | Purple gradient style |
+| `shibainu` | Playful with illustrations |
+| `unicorn` | Colorful gradient backgrounds |
 
 Slidev automatically downloads and installs official themes when you use them.
 
 ## Using Custom Themes
 
-You can use themes from anywhere by specifying a path in your `slides.md` frontmatter.
+Custom themes must be stored in `~/.config/preso/themes/` for `preso theme list` to discover them.
 
-### Local Path (Relative)
+### Installing a Custom Theme
+
+```bash
+# Create themes directory if it doesn't exist
+mkdir -p ~/.config/preso/themes
+
+# Clone or copy your theme
+git clone https://github.com/example/my-theme ~/.config/preso/themes/my-theme
+```
+
+### Using a Custom Theme
+
+Once installed in the themes directory:
+
+```bash
+preso theme set my-theme
+```
+
+Or reference it directly in your `slides.md` frontmatter:
 
 ```yaml
 ---
-theme: ./my-theme
+theme: ~/.config/preso/themes/my-theme
 ---
 ```
 
-### Home Directory Path
-
-```yaml
----
-theme: ~/themes/my-company-theme
----
-```
-
-### npm Package
+### Using npm Themes
 
 Slidev automatically installs themes from npm when referenced by name:
 

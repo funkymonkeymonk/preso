@@ -6,27 +6,35 @@ A standalone CLI for creating and presenting [Slidev](https://sli.dev) presentat
 
 ## Installation
 
-Download the latest release for your platform:
+### Homebrew (Recommended)
+
+```bash
+brew install funkymonkeymonk/preso/preso
+```
+
+### Manual Download
 
 ```bash
 # macOS (Apple Silicon)
-curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-darwin-arm64 -o preso
+curl -fsSL https://github.com/funkymonkeymonk/preso/releases/latest/download/preso-darwin-arm64 -o preso
 chmod +x preso && sudo mv preso /usr/local/bin/
 
 # macOS (Intel)
-curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-darwin-x64 -o preso
+curl -fsSL https://github.com/funkymonkeymonk/preso/releases/latest/download/preso-darwin-x64 -o preso
 chmod +x preso && sudo mv preso /usr/local/bin/
 
 # Linux (x64)
-curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-linux-x64 -o preso
+curl -fsSL https://github.com/funkymonkeymonk/preso/releases/latest/download/preso-linux-x64 -o preso
 chmod +x preso && sudo mv preso /usr/local/bin/
 
 # Linux (ARM64)
-curl -fsSL https://github.com/wweaver/preso/releases/latest/download/preso-linux-arm64 -o preso
+curl -fsSL https://github.com/funkymonkeymonk/preso/releases/latest/download/preso-linux-arm64 -o preso
 chmod +x preso && sudo mv preso /usr/local/bin/
 
-# Windows (PowerShell as Administrator)
-Invoke-WebRequest -Uri https://github.com/wweaver/preso/releases/latest/download/preso-windows-x64.exe -OutFile C:\Windows\preso.exe
+# Windows (PowerShell)
+New-Item -ItemType Directory -Force -Path "$env:LOCALAPPDATA\preso"
+Invoke-WebRequest -Uri https://github.com/funkymonkeymonk/preso/releases/latest/download/preso-windows-x64.exe -OutFile "$env:LOCALAPPDATA\preso\preso.exe"
+# Add to PATH: [Environment]::SetEnvironmentVariable("Path", $env:Path + ";$env:LOCALAPPDATA\preso", "User")
 ```
 
 ## Quick Start
@@ -95,14 +103,21 @@ For AI coding assistants (OpenCode, Claude Code, etc.), see the [Installation Gu
 
 ## Development
 
-For contributors using [devenv](https://devenv.sh):
+For contributors:
 
 ```bash
+# Using devenv
 devenv shell
 preso-dev serve        # Run CLI in dev mode
 preso-build            # Build binary for current platform
-preso-build-all        # Build for all platforms
+
+# Or with Bun directly
+bun install
+bun run src/cli/index.ts serve
+bun test
 ```
+
+See [Contributing Guide](docs/contributing/getting-started.md) for more details.
 
 ## Documentation
 
