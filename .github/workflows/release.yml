@@ -82,10 +82,10 @@ jobs:
       matrix:
         include:
           - target: darwin-arm64
-            os: macos-14
+            os: macos-latest
             artifact: preso-darwin-arm64
           - target: darwin-x64
-            os: macos-13
+            os: macos-latest
             artifact: preso-darwin-x64
           - target: linux-x64
             os: ubuntu-latest
