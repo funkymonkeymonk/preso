@@ -2,10 +2,13 @@
  * Tests for init command
  */
 
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it, setDefaultTimeout } from "bun:test";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createTestContext, getFirstLogOutput } from "../helpers/testContext";
+
+// Init tests run bun install which can be very slow on Windows CI (40+ seconds)
+setDefaultTimeout(60_000);
 
 describe("initCommand", () => {
   const ctx = createTestContext();

@@ -23,18 +23,23 @@ jobs:
           - target: darwin-arm64
             os: macos-14
             artifact: preso-darwin-arm64
+            display: macOS Apple Silicon
           - target: darwin-x64
             os: macos-13
             artifact: preso-darwin-x64
+            display: macOS Intel
           - target: linux-x64
             os: ubuntu-latest
             artifact: preso-linux-x64
+            display: Linux x64
           - target: linux-arm64
             os: ubuntu-24.04-arm
             artifact: preso-linux-arm64
+            display: Linux ARM64
           - target: windows-x64
             os: windows-latest
             artifact: preso-windows-x64.exe
+            display: Windows x64
 
     steps:
       - uses: actions/checkout@v4
@@ -47,6 +52,9 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Run tests
+        run: bun test
+
       - name: Build binary
         run: |
           VERSION="${{ github.event.inputs.version || github.ref_name }}"
@@ -54,6 +62,17 @@ jobs:
           bun build --compile --minify --target=bun-${{ matrix.target }} \
             --define=BUILD_VERSION="\"$VERSION\"" \
             ./src/cli/index.ts --outfile dist/${{ matrix.artifact }}
+
+      - name: Get binary size
+        id: size
+        shell: bash
+        run: |
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            SIZE=$(powershell -Command "(Get-Item dist/${{ matrix.artifact }}).Length / 1MB" | tr -d '\r')
+          else
+            SIZE=$(du -m dist/${{ matrix.artifact }} | cut -f1)
+          fi
+          echo "size=${SIZE}MB" >> $GITHUB_OUTPUT
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -69,6 +88,8 @@ jobs:
       version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Get version
         id: version
@@ -76,6 +97,13 @@ jobs:
           VERSION="${{ github.event.inputs.version || github.ref_name }}"
           VERSION="${VERSION#v}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Get previous tag
+        id: prev_tag
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -84,19 +112,119 @@ jobs:
           merge-multiple: true
 
       - name: Create checksums
+        id: checksums
         run: |
           cd dist
           sha256sum * > checksums.txt
           cat checksums.txt
+          
+          # Export individual checksums for release notes
+          echo "darwin_arm64=$(sha256sum preso-darwin-arm64 | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "darwin_x64=$(sha256sum preso-darwin-x64 | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "linux_x64=$(sha256sum preso-linux-x64 | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "linux_arm64=$(sha256sum preso-linux-arm64 | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "windows_x64=$(sha256sum preso-windows-x64.exe | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+
+      - name: Get binary sizes
+        id: sizes
+        run: |
+          cd dist
+          echo "darwin_arm64=$(du -m preso-darwin-arm64 | cut -f1)MB" >> $GITHUB_OUTPUT
+          echo "darwin_x64=$(du -m preso-darwin-x64 | cut -f1)MB" >> $GITHUB_OUTPUT
+          echo "linux_x64=$(du -m preso-linux-x64 | cut -f1)MB" >> $GITHUB_OUTPUT
+          echo "linux_arm64=$(du -m preso-linux-arm64 | cut -f1)MB" >> $GITHUB_OUTPUT
+          echo "windows_x64=$(du -m preso-windows-x64.exe | cut -f1)MB" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          if [[ -n "${{ steps.prev_tag.outputs.prev_tag }}" ]]; then
+            echo "## What's Changed" > changelog.md
+            echo "" >> changelog.md
+            git log ${{ steps.prev_tag.outputs.prev_tag }}..HEAD --pretty=format:"- %s" --no-merges >> changelog.md
+          else
+            echo "## Initial Release" > changelog.md
+            echo "" >> changelog.md
+            echo "First release of PRESO CLI." >> changelog.md
+          fi
+          
+          # Escape for GitHub Actions
+          CHANGELOG=$(cat changelog.md)
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Generate release body
+        id: release_body
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG="${{ steps.version.outputs.tag }}"
+          
+          cat > release_body.md << 'HEREDOC'
+          ## Installation
+
+          ### Homebrew (Recommended)
+
+          ```bash
+          brew install funkymonkeymonk/preso/preso
+          ```
+
+          ### Manual Download
+
+          | Platform | Binary | Size | SHA256 |
+          |----------|--------|------|--------|
+          | macOS Apple Silicon | [preso-darwin-arm64](https://github.com/funkymonkeymonk/preso/releases/download/TAG_PLACEHOLDER/preso-darwin-arm64) | SIZE_DARWIN_ARM64 | `SHA_DARWIN_ARM64` |
+          | macOS Intel | [preso-darwin-x64](https://github.com/funkymonkeymonk/preso/releases/download/TAG_PLACEHOLDER/preso-darwin-x64) | SIZE_DARWIN_X64 | `SHA_DARWIN_X64` |
+          | Linux x64 | [preso-linux-x64](https://github.com/funkymonkeymonk/preso/releases/download/TAG_PLACEHOLDER/preso-linux-x64) | SIZE_LINUX_X64 | `SHA_LINUX_X64` |
+          | Linux ARM64 | [preso-linux-arm64](https://github.com/funkymonkeymonk/preso/releases/download/TAG_PLACEHOLDER/preso-linux-arm64) | SIZE_LINUX_ARM64 | `SHA_LINUX_ARM64` |
+          | Windows x64 | [preso-windows-x64.exe](https://github.com/funkymonkeymonk/preso/releases/download/TAG_PLACEHOLDER/preso-windows-x64.exe) | SIZE_WINDOWS_X64 | `SHA_WINDOWS_X64` |
+
+          ### Quick Install (macOS/Linux)
+
+          ```bash
+          # Auto-detect platform
+          curl -fsSL https://github.com/funkymonkeymonk/preso/releases/download/TAG_PLACEHOLDER/preso-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/' | sed 's/aarch64/arm64/') -o preso
+          chmod +x preso
+          sudo mv preso /usr/local/bin/
+          ```
+
+          ### Verify Installation
+
+          ```bash
+          preso --version
+          # Expected: VERSION_PLACEHOLDER
+          ```
+
+          HEREDOC
+          
+          # Replace placeholders
+          sed -i "s/TAG_PLACEHOLDER/$TAG/g" release_body.md
+          sed -i "s/VERSION_PLACEHOLDER/$VERSION/g" release_body.md
+          sed -i "s/SHA_DARWIN_ARM64/${{ steps.checksums.outputs.darwin_arm64 }}/g" release_body.md
+          sed -i "s/SHA_DARWIN_X64/${{ steps.checksums.outputs.darwin_x64 }}/g" release_body.md
+          sed -i "s/SHA_LINUX_X64/${{ steps.checksums.outputs.linux_x64 }}/g" release_body.md
+          sed -i "s/SHA_LINUX_ARM64/${{ steps.checksums.outputs.linux_arm64 }}/g" release_body.md
+          sed -i "s/SHA_WINDOWS_X64/${{ steps.checksums.outputs.windows_x64 }}/g" release_body.md
+          sed -i "s/SIZE_DARWIN_ARM64/${{ steps.sizes.outputs.darwin_arm64 }}/g" release_body.md
+          sed -i "s/SIZE_DARWIN_X64/${{ steps.sizes.outputs.darwin_x64 }}/g" release_body.md
+          sed -i "s/SIZE_LINUX_X64/${{ steps.sizes.outputs.linux_x64 }}/g" release_body.md
+          sed -i "s/SIZE_LINUX_ARM64/${{ steps.sizes.outputs.linux_arm64 }}/g" release_body.md
+          sed -i "s/SIZE_WINDOWS_X64/${{ steps.sizes.outputs.windows_x64 }}/g" release_body.md
+          
+          # Append changelog
+          echo "" >> release_body.md
+          cat changelog.md >> release_body.md
+          
+          cat release_body.md
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.inputs.version || github.ref_name }}
-          name: PRESO ${{ github.event.inputs.version || github.ref_name }}
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: PRESO ${{ steps.version.outputs.tag }}
+          body_path: release_body.md
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
-          generate_release_notes: true
           files: |
             dist/preso-darwin-arm64
             dist/preso-darwin-x64
@@ -150,5 +278,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Formula/preso.rb
-          git commit -m "Update Homebrew formula to ${{ needs.release.outputs.version }}"
-          git push
+          git commit -m "Update Homebrew formula to ${{ needs.release.outputs.version }}" || echo "No changes to commit"
+          git push || echo "Nothing to push"
