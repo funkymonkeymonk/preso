@@ -137,23 +137,41 @@ dist/
 
     spinner.succeed("Files created");
 
-    // Install dependencies
+    // Install dependencies using available package manager
     const installSpinner = new Spinner("Installing dependencies...").start();
     try {
-      const proc = Bun.spawn(["bun", "install"], {
-        cwd,
-        stdout: "pipe",
-        stderr: "pipe",
-      });
-      const exitCode = await proc.exited;
-      if (exitCode === 0) {
-        installSpinner.succeed("Dependencies installed");
-      } else {
-        installSpinner.fail("Install failed - run 'bun install' manually");
+      // Try npm first (most widely available), then bun
+      const packageManagers = [
+        { cmd: "npm", args: ["install"] },
+        { cmd: "bun", args: ["install"] },
+      ];
+
+      let installed = false;
+      for (const pm of packageManagers) {
+        const pmPath = Bun.which(pm.cmd);
+        if (pmPath) {
+          const proc = Bun.spawn([pmPath, ...pm.args], {
+            cwd,
+            stdout: "pipe",
+            stderr: "pipe",
+          });
+          const exitCode = await proc.exited;
+          if (exitCode === 0) {
+            installSpinner.succeed("Dependencies installed");
+            installed = true;
+            break;
+          }
+        }
+      }
+
+      if (!installed) {
+        installSpinner.fail(
+          "Install failed - run 'npm install' or 'bun install' manually",
+        );
       }
     } catch {
       installSpinner.fail(
-        "Install failed - run 'npm install' or 'bun install'",
+        "Install failed - run 'npm install' or 'bun install' manually",
       );
     }
 

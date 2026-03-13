@@ -5,8 +5,9 @@
 import { basename, join } from "node:path";
 import { parseArgs } from "node:util";
 
-import { requireSlides, runSlidevBuild } from "../utils/config";
+import { requireSlides } from "../utils/config";
 import { ExitCode, Spinner, info } from "../utils/output";
+import { build } from "../utils/slidev";
 
 const HELP = `
 Build the presentation as a static site.
@@ -54,9 +55,10 @@ export async function buildCommand(args: string[]): Promise<void> {
 
   const spinner = new Spinner(`Building: ${name}`).start();
 
-  const result = await runSlidevBuild({
+  const result = await build({
     slidesPath,
-    args: ["build", "--out", outDir, "--base", base],
+    outDir,
+    base,
     cwd,
   });
 
@@ -65,10 +67,10 @@ export async function buildCommand(args: string[]): Promise<void> {
     spinner.succeed(`Built: ${outputPath}`);
     console.log("");
     info("To preview:");
-    console.log(`  cd ${outDir} && bunx serve`);
+    console.log(`  cd ${outDir} && npx serve`);
   } else {
     spinner.fail("Build failed");
-    if (result.stderr) console.error(result.stderr);
+    if (result.error) console.error(result.error);
     process.exit(ExitCode.BUILD_FAILED);
   }
 }

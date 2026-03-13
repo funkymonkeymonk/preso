@@ -10,9 +10,9 @@ import {
   requireAvailablePort,
   requireSlides,
   resolvePort,
-  startSlidev,
 } from "../utils/config";
 import { info } from "../utils/output";
+import { serve } from "../utils/slidev";
 
 const HELP = `
 Start the Slidev development server.
@@ -69,5 +69,5 @@ export async function serveCommand(args: string[]): Promise<void> {
   console.log(`  URL:  http://localhost:${port}`);
   console.log("");
 
-  await startSlidev({ slidesPath, port, open: values.open });
+  await serve({ slidesPath, port, open: values.open });
 }
