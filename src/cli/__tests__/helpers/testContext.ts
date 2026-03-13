@@ -44,6 +44,7 @@ export function createTestContext(): TestContext {
   let originalExit: typeof process.exit;
   let originalConsoleLog: typeof console.log;
   let originalConsoleError: typeof console.error;
+  let originalBunWhich: typeof Bun.which;
 
   beforeEach(() => {
     ctx.testDir = join(
@@ -62,6 +63,7 @@ export function createTestContext(): TestContext {
     originalConsoleLog = console.log;
     originalConsoleError = console.error;
     originalExit = process.exit;
+    originalBunWhich = Bun.which;
 
     // Apply mocks
     console.log = ctx.mocks.consoleLog;
@@ -69,6 +71,10 @@ export function createTestContext(): TestContext {
     process.exit = mock((code?: number) => {
       throw new Error(`process.exit called with ${code}`);
     }) as never;
+
+    // Mock Bun.which to return null so init tests don't try to run npm/bun install
+    // This prevents slow network calls in CI
+    Bun.which = mock(() => null) as typeof Bun.which;
   });
 
   afterEach(() => {
@@ -80,6 +86,7 @@ export function createTestContext(): TestContext {
     console.log = originalConsoleLog;
     console.error = originalConsoleError;
     process.exit = originalExit;
+    Bun.which = originalBunWhich;
   });
 
   return ctx;
