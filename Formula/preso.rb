@@ -8,20 +8,20 @@
 class Preso < Formula
   desc "PRESO Renders Engaging Slides On-demand - Slidev presentation CLI"
   homepage "https://github.com/funkymonkeymonk/preso"
-  version "0.0.2"
+  version "0.0.3"
   license "MIT"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/funkymonkeymonk/preso/releases/download/v0.0.2/preso-darwin-arm64"
-      sha256 "850bd5d7ad14192cafbc6446315f28fddd82c2765a7e2cb28612d2879015c310"
+      url "https://github.com/funkymonkeymonk/preso/releases/download/v0.0.3/preso-darwin-arm64"
+      sha256 "e19c9a5ea084f1daaf5bce5251840fcca2af9ff69b876511a0512d9fb132f09a"
 
       def install
         bin.install "preso-darwin-arm64" => "preso"
       end
     else
-      url "https://github.com/funkymonkeymonk/preso/releases/download/v0.0.2/preso-darwin-x64"
-      sha256 "120f4aa7be4b53ce2bee9cb536c302a0331b1bfb5e89098970e01594b3a76179"
+      url "https://github.com/funkymonkeymonk/preso/releases/download/v0.0.3/preso-darwin-x64"
+      sha256 "12e5a01e3f045d8f31fe7b386efb6187067514204c7413ee7e0aa168a0fe7bba"
 
       def install
         bin.install "preso-darwin-x64" => "preso"
@@ -31,15 +31,15 @@ class Preso < Formula
 
   on_linux do
     if Hardware::CPU.arm?
-      url "https://github.com/funkymonkeymonk/preso/releases/download/v0.0.2/preso-linux-arm64"
-      sha256 "9e56128445a0e9d94552c744b37fbe373a167721294a34afad924d154d48e067"
+      url "https://github.com/funkymonkeymonk/preso/releases/download/v0.0.3/preso-linux-arm64"
+      sha256 "46b621fba3b653ab4ce9e6105c42b2b084c60d9c65828fb87652cc75a88bd895"
 
       def install
         bin.install "preso-linux-arm64" => "preso"
       end
     else
-      url "https://github.com/funkymonkeymonk/preso/releases/download/v0.0.2/preso-linux-x64"
-      sha256 "7a41e59da5273409485a3a19747bcc3b646982ded4e200123d708943b0860c2f"
+      url "https://github.com/funkymonkeymonk/preso/releases/download/v0.0.3/preso-linux-x64"
+      sha256 "fad02791536a7bea7ee1a19c157fe73411c1bbf4b0845de0daef82f0b9e606b1"
 
       def install
         bin.install "preso-linux-x64" => "preso"
