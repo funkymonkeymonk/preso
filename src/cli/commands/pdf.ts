@@ -5,8 +5,9 @@
 import { basename } from "node:path";
 import { parseArgs } from "node:util";
 
-import { requireSlides, runSlidevBuild } from "../utils/config";
+import { requireSlides } from "../utils/config";
 import { ExitCode, Spinner, exitMissingDependency } from "../utils/output";
+import { exportSlides } from "../utils/slidev";
 
 const HELP = `
 Export the presentation to PDF.
@@ -57,28 +58,26 @@ export async function pdfCommand(args: string[]): Promise<void> {
 
   const spinner = new Spinner(`Exporting: ${name}`).start();
 
-  const exportArgs = ["export", "--output", outputPath];
-  if (values.dark) exportArgs.push("--dark");
-  if (values["with-clicks"]) exportArgs.push("--with-clicks");
-  if (values["with-toc"]) exportArgs.push("--with-toc");
-
-  const result = await runSlidevBuild({
+  const result = await exportSlides({
     slidesPath,
-    args: exportArgs,
+    output: outputPath,
+    format: "pdf",
+    dark: values.dark,
+    withClicks: values["with-clicks"],
     cwd,
   });
 
   if (result.success) {
-    spinner.succeed(`Exported: ${outputPath}`);
+    spinner.succeed(`Exported: ${result.outputPath || outputPath}`);
   } else {
     spinner.fail("Export failed");
-    if (result.stderr) {
-      console.error(result.stderr);
+    if (result.error) {
+      console.error(result.error);
       if (
-        result.stderr.includes("playwright") ||
-        result.stderr.includes("chromium")
+        result.error.includes("playwright") ||
+        result.error.includes("chromium")
       ) {
-        exitMissingDependency("Playwright", "bunx playwright install chromium");
+        exitMissingDependency("Playwright", "npx playwright install chromium");
       }
     }
     process.exit(ExitCode.EXPORT_FAILED);

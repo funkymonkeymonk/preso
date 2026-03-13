@@ -10,9 +10,9 @@ import {
   requireAvailablePort,
   requireSlides,
   resolvePort,
-  startSlidev,
 } from "../utils/config";
 import { info } from "../utils/output";
+import { serve } from "../utils/slidev";
 
 const HELP = `
 Start presenter mode with speaker notes and controls.
@@ -65,7 +65,7 @@ export async function presentCommand(args: string[]): Promise<void> {
   }
   console.log("");
 
-  await startSlidev({
+  await serve({
     slidesPath,
     port,
     open: "/presenter",
